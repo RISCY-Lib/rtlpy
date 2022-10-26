@@ -36,11 +36,11 @@ class TestDesignHelpers (unittest.TestCase) :
     self.assertTrue(designs._overlaps((0,3), (1,2)), "Checking external overlap")
 
 
-  def test__str2int(self) :
-    """Tests the _str2int helper function"""
-    self.assertEqual(designs._str2int("0xA"), 0xA, "String '0xA' should match integer literal 0xA")
-    self.assertEqual(designs._str2int("xA"), 0xA, "String 'xA' should match integer literal 0xA")
-    self.assertEqual(designs._str2int("243"), 243, "String '243' should match integer literal 243")
+  def test__val2int(self) :
+    """Tests the _val2int helper function"""
+    self.assertEqual(designs._val2int("0xA"), 0xA, "String '0xA' should match integer literal 0xA")
+    self.assertEqual(designs._val2int("xA"), 0xA, "String 'xA' should match integer literal 0xA")
+    self.assertEqual(designs._val2int("243"), 243, "String '243' should match integer literal 243")
 
-    with self.assertRaises(TypeError, msg="rtlpy.designs._str2int should raise exception if it doesn't receive a string") :
-      designs._str2int(10)
+    with self.assertRaises(TypeError, msg="rtlpy.designs._val2int should raise exception if it doesn't receive a string") :
+      designs._val2int(10)
