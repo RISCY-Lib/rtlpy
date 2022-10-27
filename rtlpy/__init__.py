@@ -16,10 +16,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-VERSION = {"major": 0, "minor" : 1, "patch" : 0, "status" : "alpha"}
+VERSION = {"major": 0, "minor": 1, "patch": 0, "status": "alpha"}
 """Version Dictionary (keys: major, minor, patch, status)"""
 
-if (VERSION['status'] != '') :
+if (VERSION['status'] != ''):
   __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}-{VERSION['status']}"
-else :
+else:
   __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}"

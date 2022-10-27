@@ -1,5 +1,5 @@
 ##########################################################################
-# A general RTL Utility Library for Python                               #
+# rtlpy is a open-source utility library for RTL developers              #
 # Copyright (C) 2022, Benjamin Davis                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
@@ -15,12 +15,3 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-"""Loads and runs the Unit Test from the rtlpy_tester package
-"""
-
-import unittest
-
-from rtlpy_tester import *
-
-if __name__ == "__main__" :
-  unittest.main()
