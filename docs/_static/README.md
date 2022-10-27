@@ -1,0 +1,1 @@
+Required to keep the _static folder: necessary for sphinx

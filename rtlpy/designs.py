@@ -1,6 +1,27 @@
+##########################################################################
+# Python library to help with the automatic creation of RTL              #
+# Copyright (C) 2022, Benjamin Davis                                     #
+#                                                                        #
+# This program is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# This program is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with this program.  If not, see <https://www.gnu.org/licenses/>. #
+##########################################################################
+"""The module which contains the classes necessary to represent a skeleton
+RTL design.
+"""
+
 from __future__ import annotations
 from typing import Any, Iterator, Union, Tuple
-from attrs import define, field, validators
+from attr import define, field, validators
 from enum import Enum
 
 ##########################################################################
@@ -56,6 +77,42 @@ def _conv2access(val:Union[str, AccessType]) -> AccessType :
   if (isinstance(val, str)) : return AccessType[val.upper()]
   raise ValueError("Function _conv2access takes a single argument of type str or AccessType")
 
+
+class PortDirection(Enum) :
+  OUTPUT = "output"
+  INPUT  = "input"
+  INOUT  = "inout"
+
+def _conv2direction(val:Union[str, PortDirection]) -> PortDirection :
+  if (isinstance(val, PortDirection)) : return val
+  if (isinstance(val, str)) : return AccessType[val.upper()]
+  raise ValueError("Function _conv2direction takes a single argument of type str or PortDirection")
+
+
+class SignalType(Enum) :
+  WIRE   = "wire"
+  REG    = "reg"
+  LOGIC  = "logic"
+  REAL   = "real"
+  WREAL  = "wreal"
+  WREAL4 = "wreal4state"
+
+def _conv2sigtype(val:Union[str, SignalType]) -> SignalType :
+  if (isinstance(val, SignalType)) : return val
+  if (isinstance(val, str)) : return SignalType[val.upper()]
+  raise ValueError("Function _conv2sigtype takes a single argument of type str or SignalType")
+
+
+class ParamType(Enum) :
+  NONE    = "none"
+  INTEGER = "int"
+  STRING  = "string"
+
+def _conv2paramtype(val:Union[str, ParamType]) -> ParamType :
+  if (isinstance(val, ParamType)) : return val
+  if (isinstance(val, str)) : return ParamType[val.upper()]
+  raise ValueError("Function _conv2sigtype takes a single argument of type str or ParamType")
+
 ##########################################################################
 # Memory Classes
 ##########################################################################
@@ -64,12 +121,19 @@ def _conv2access(val:Union[str, AccessType]) -> AccessType :
 class Field :
   """Class to represent a field of a Register
   """
+
   name    : str        = field(validator=validators.instance_of(str))
+  """The name of the field"""
   access  : AccessType = field(validator=validators.instance_of(AccessType), converter=_conv2access)
+  """The access type of the field"""
   lsb_pos : int        = field(validator=validators.instance_of(int))
+  """The Least-Significant bit location of the field in the register"""
   width   : int        = field(validator=validators.instance_of(int), default=1)
+  """The width of the field in bits"""
   volatile: bool       = field(validator=validators.instance_of(bool), default=False)
+  """The volatile field flag (i.e. the underlying data can change without bus interaction)"""
   reset   : int        = field(validator=validators.instance_of((int, str)), default=0, converter=_val2int)
+  """The reset value of the field"""
 
   def get_msb_pos(self) -> int : 
     """
@@ -157,7 +221,73 @@ class Register :
 class AddressBlock :
   """Class to represent an address block from a memory map
   """
+
   name: str = field(validator=validators.instance_of(str))
+  """Name of the Address Block"""
+  reg_size: int = field(validator=validators.instance_of(int))
+  """Size of the registers in the address block (in Bytes)"""
+  _regs: list[Register] = field(init=False, factory=list)
+  """List of register in the address block"""
+
+  def add(self, reg:Register) -> None :
+    """Adds a register to the address block at the provided register's specified offset
+
+    Args:
+        reg (Register): The register to add to the address block
+
+    Raises:
+        ValueError: If the register's size overlaps an existing register
+        ValueError: If the register shares a name with an existing register
+    """
+    new_idx = None
+    if reg.size() > self.reg_size * 8 :
+      raise ValueError(f"Can't add register named {reg.name} to address block named {self.name}."+
+                       f"The register is larger than the address block reg size ({self.reg_size} bytes)")
+
+    for idx, val in enumerate(self._regs) :
+      if reg.overlaps(val) :
+        raise ValueError(f"Can't add register named {reg.name} to address block named {self.name}. Overlaps with existing register (named {val.name}).")
+      if reg.name == self.name :
+        raise ValueError(f"Cant add register named {reg.name} to address block named {self.name}. A register of that name already exists.")
+
+      if (val.offset + val.size() > reg.offset) :
+        new_idx = idx + 1
+
+    self._regs.insert(new_idx, reg)
+
+  def append(self, reg:Register) -> int :
+    """Adds a register to the end of the existing address block
+
+    Args:
+        reg (Register): The register to add to the end of the address block
+
+    Raises:
+        ValueError: If the register shares a name with an existing register
+
+    Returns:
+        int: The new offset of the register
+    """
+    if (reg.name in [r.name for r in self._regs]) :
+      raise ValueError(f"Cant add register named {reg.name} to address block named {self.name}. A register of that name already exists.")
+    if reg.size() > self.reg_size * 8 :
+      raise ValueError(f"Can't add register named {reg.name} to address block named {self.name}."+
+                       f"The register is larger than the address block reg size ({self.reg_size} bytes)")
+
+    if (len(self._regs) == 0) :
+      reg.offset = 0
+    else :
+      reg.offset = self._regs[-1].offset + 1
+    self._regs.append(reg)
+    return reg.offset
+
+  def get(self, i:int) -> Register :
+    return self._regs[i]
+
+  def __len__(self) -> int :
+    return len(self._regs)
+
+  def __iter__(self) -> Iterator[Register] :
+    return self._regs.__iter__()
 
 
 @define
@@ -165,6 +295,17 @@ class MemoryMap :
   """Class to represent an RTL memory map
   """
   name: str = field(validator=validators.instance_of(str))
+  """Name of the Memory Map"""
+  _blocks: list[AddressBlock] = field(init=False, factory=list)
+  """List of the blocks in the MemoryMap"""
+
+  def add(self, block:AddressBlock) -> None :
+    
+    if (block.name in [b.name for b in self._blocks]) :
+      raise ValueError(f"Can't add AddressBlock named {block.name} to the MemoryMap named {self.name}." +
+                        f"An AddressBlock of that name already exists.")
+
+    self._blocks.append(block)
 
 
 ##########################################################################
@@ -176,14 +317,24 @@ class Port :
   """Class to represent the port in an RTL Module
   """
   name: str = field(validator=validators.instance_of(str))
-
+  """The name of the port"""
+  dir: PortDirection = field(validator=validators.instance_of(PortDirection), converter=_conv2direction)
+  """The direction of the port"""
+  width: int = field(validator=validators.instance_of(int), default=1)
+  """The width of the port"""
+  type: SignalType = field(validator=validators.instance_of(SignalType), converter=_conv2sigtype, default=SignalType.LOGIC)
+  """The signal type of the port"""
 
 @define
 class Parameter :
   """Class to represent a parameter in an RTL Module
   """
   name: str = field(validator=validators.instance_of(str))
-
+  """The name of the parameter"""
+  type: ParamType = field(validator=validators.instance_of(ParamType), default=ParamType.NONE)
+  """The type of the parameter"""
+  default: Any = field(default=None)
+  """The default of the parameter"""
 
 @define
 class Module :

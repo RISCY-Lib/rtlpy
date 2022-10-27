@@ -23,6 +23,8 @@ import unittest
 import random
 import string
 
+#TODO: Transition to pytest
+
 class TestDesignHelpers (unittest.TestCase) :
   """Unit test Class for the rtlpy helper functions
   """

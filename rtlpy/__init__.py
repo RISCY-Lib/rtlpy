@@ -17,6 +17,7 @@
 ##########################################################################
 
 VERSION = {"major": 0, "minor" : 1, "patch" : 0, "status" : "alpha"}
+"""Version Dictionary (keys: major, minor, patch, status)"""
 
 if (VERSION['status'] != '') :
   __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}-{VERSION['status']}"
