@@ -11,7 +11,7 @@ These test's live in the ./tests directory.
 ## Coding Style
 Coding style guidelines can be found [here](./CodingStyle.md)
 
-Coding style requirements can be checked by running ```flake8 rtl tests``` from
+Coding style requirements can be checked by running ```flake8 rtlpy tests``` from
   the project top directory.
 
 Additionally, the static-typing requirement of the CodingStyle can be checked
