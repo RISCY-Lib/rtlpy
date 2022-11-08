@@ -89,6 +89,7 @@ class SignalType(Enum):
   REAL = "REAL"
   WREAL = "WREAL"
   WREAL4 = "WREAL4STATE"
+  UWIRE = "UWIRE"
 
   @classmethod
   def from_string(cls, label: str) -> SignalType:

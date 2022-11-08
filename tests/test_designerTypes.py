@@ -22,6 +22,7 @@
 import pytest
 import rtlpy.designer as designer
 
+
 @pytest.mark.parametrize("val,expected", [
   ("READ_ONLY".lower(),         designer.AccessType.READ_ONLY),
   ("READ_WRITE".lower(),        designer.AccessType.READ_WRITE),

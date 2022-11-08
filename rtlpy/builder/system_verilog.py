@@ -20,6 +20,7 @@
 
 from rtlpy.builder.generic import GenericBuilder
 import rtlpy.designer as designer
+from typing import List
 
 
 class SystemVerilogBuilder(GenericBuilder):
@@ -34,11 +35,11 @@ class SystemVerilogBuilder(GenericBuilder):
     """
     self.write_line(f"// {comment}")
 
-  def block_comment(self, comment_lines: list[str]) -> None:
+  def block_comment(self, comment_lines: List[str]) -> None:
     """Creates a block comment in the SystemVerilog file
 
     Args:
-        comment_lines (list[str]): The list of strings to use for the block comment
+        comment_lines (List[str]): The list of strings to use for the block comment
     """
     self.write_line("/*")
     for line in comment_lines:

@@ -19,6 +19,7 @@
 """
 
 from abc import ABC, abstractmethod
+from typing import List
 
 import rtlpy.designer as designer
 
@@ -54,7 +55,7 @@ class GenericBuilder (ABC):
     pass
 
   @abstractmethod
-  def block_comment(self, comment_lines: list[str]) -> None:
+  def block_comment(self, comment_lines: List[str]) -> None:
     pass
 
   @abstractmethod
