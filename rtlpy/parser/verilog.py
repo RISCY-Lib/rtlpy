@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Tuple
 
 from rtlpy.ply import lex
 
@@ -99,7 +99,7 @@ class VerilogLexer:
   # Tokens
   ##########################################################################
 
-  reserved_keywords = (
+  reserved_keywords: Tuple[str, ...] = (
     "always", "and", "assign", "automatic", "begin", "buf",
     "bufif0", "bufif1", "case", "casex", "casez", "cell",
     "cmos", "config", "deassign", "default", "defparam", "design",
