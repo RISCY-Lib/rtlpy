@@ -37,3 +37,26 @@ def valid_name(name: str) -> bool:
 def name_validator(self: Any, attribute: Any, val: Any) -> None:
   if not valid_name(val):
     raise ValueError(f"Invalid Name Value {val}")
+
+
+def val2int(val: Any) -> int:
+  if not isinstance(val, str):
+    return int(val)
+
+  val = val.lower()
+
+  if val[0:2] == "0x":
+    return int(val[2:], base=16)
+  if val[0] == "x":
+    return int(val[1:], base=16)
+
+  if "'h" in val:
+    return int(val[val.find("'h")+2:], base=16)
+  if "'d" in val:
+    return int(val[val.find("'d")+2:], base=10)
+  if "'o" in val:
+    return int(val[val.find("'o")+2:], base=8)
+  if "'b" in val:
+    return int(val[val.find("'b")+2:], base=2)
+
+  return int(val)

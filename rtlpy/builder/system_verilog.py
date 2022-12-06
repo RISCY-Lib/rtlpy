@@ -51,6 +51,3 @@ class SystemVerilogBuilder(GenericBuilder):
 
   def register(self, reg: designer.Register) -> None:
     pass
-
-  def field(self, fld: designer.Field) -> None:
-    pass

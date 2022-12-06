@@ -30,3 +30,17 @@ from rtlpy import utils
 ])
 def test_valid_name(val, expected):
   assert utils.valid_name(val) is expected
+
+
+@pytest.mark.parametrize("val,expected", [
+  (10, 10),
+  (0x69, 0x69),
+  ("0x71", 0x71),
+  ("x420", 0x420),
+  ("8'h90", 0x90),
+  ("7'd11", 11),
+  ("'o72", int("72", base=8)),
+  ("6'b101010", 42)
+])
+def test_val2int(val, expected):
+  assert utils.val2int(val) == expected

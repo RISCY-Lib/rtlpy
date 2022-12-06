@@ -71,8 +71,7 @@ class Component:
   """Text description of the component"""
 
   memory_map: memory.MemoryMap = field(init=False)
-  """The memory map of the component
-  """
+  """The memory map of the component"""
 
   ports: list[Port] = field(factory=list, init=False)
   """List of ports for the component"""
