@@ -17,5 +17,5 @@
 ##########################################################################
 
 from rtlpy.designer.types import AccessType, PortDirection, SignalType, ParamType  # noqa: F401
-from rtlpy.designer.component import Component  # noqa: F401
+from rtlpy.designer.component import Component, Parameter, Port  # noqa: F401
 from rtlpy.designer.memory import Field, Register, MemoryMap  # noqa: F401

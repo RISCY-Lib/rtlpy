@@ -24,6 +24,8 @@ from typing import List
 import rtlpy.designer as designer
 
 
+# TODO: Add header capabilities
+
 class GenericBuilder (ABC):
   def __init__(self, name: str, tab_size: int, filename: str):
     if (not isinstance(name, str)):
@@ -58,8 +60,21 @@ class GenericBuilder (ABC):
   def block_comment(self, comment_lines: List[str]) -> None:
     pass
 
-  @abstractmethod
   def module(self, module: designer.Component) -> None:
+    self.moduleDefinition(module)
+    self.endModule()
+
+  @abstractmethod
+  def moduleDefinition(self, module: designer.Component) -> None:
+    """Creates the module definition from the component
+
+    Args:
+        module (designer.Component): The component to create the module definition from
+    """
+    pass
+
+  @abstractmethod
+  def endModule(self) -> None:
     pass
 
   @abstractmethod

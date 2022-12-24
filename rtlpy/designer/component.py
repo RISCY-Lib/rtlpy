@@ -17,69 +17,86 @@
 ##########################################################################
 
 from __future__ import annotations
-from attr import define, field, validators
+
+from attr import validators
+import attr
 
 import rtlpy.utils as utils
 import rtlpy.designer.memory as memory
+import rtlpy.designer.types as types
 
 
+@attr.s
 class Port:
-  # TODO: Add type
-  # TODO: Add direction
-  name: str = field(validator=utils.name_validator)
+  name: str = attr.ib(validator=utils.name_validator)
   """The name of the Component"""
 
-  width: int = field(validator=validators.instance_of(int), default=1)
+  direction: types.PortDirection = attr.ib(validator=validators.instance_of(types.PortDirection))
+  """The direction of the port"""
+
+  width: int = attr.ib(validator=validators.instance_of(int), default=1)
   """The width of the port in bits"""
 
+  signal_type: types.SignalType = attr.ib(validator=validators.instance_of(types.SignalType),
+                                          default=types.SignalType.WIRE)
+  """The type signal used by the port"""
 
+
+@attr.s
 class Parameter:
-  # TODO: Add type
-  # TODO: Add default
-  name: str = field(validator=utils.name_validator)
+  name: str = attr.ib(validator=utils.name_validator)
   """The name of the Component"""
 
+  param_type: types.ParamType = attr.ib(default=None)
+  """The type of the parameter"""
 
+  default: str = attr.ib(default=None)
+  """The default value of the parameter"""
+
+
+@attr.s
 class DesignNode:
   # TODO
   pass
 
 
+@attr.s
 class Design:
   # TODO
   pass
 
 
-@define
+@attr.s
 class Component:
   """Class to represent an RTL component
   """
 
-  name: str = field(validator=utils.name_validator)
+  name: str = attr.ib(validator=utils.name_validator)
   """The name of the Component"""
 
-  version: str = field(validator=validators.instance_of(str), default="")
+  version: str = attr.ib(validator=validators.instance_of(str), default="")
   """The component version"""
 
-  vendor: str = field(validator=validators.instance_of(str), default="")
+  vendor: str = attr.ib(validator=validators.instance_of(str), default="")
   """The component vendor"""
 
-  library: str = field(validator=validators.instance_of(str), default="")
+  library: str = attr.ib(validator=validators.instance_of(str), default="")
   """The component library"""
 
-  description: str = field(validator=validators.instance_of(str), default="")
+  description: str = attr.ib(validator=validators.instance_of(str), default="")
   """Text description of the component"""
 
-  memory_map: memory.MemoryMap = field(init=False)
+  memory_map: memory.MemoryMap = attr.ib(init=False)
   """The memory map of the component"""
 
-  ports: list[Port] = field(factory=list, init=False)
+  ports: list[Port] = attr.ib(factory=list, init=False)
   """List of ports for the component"""
 
-  parameters: list[Parameter] = field(factory=list, init=False)
+  parameters: list[Parameter] = attr.ib(factory=list, init=False)
   """List of parameters for the component"""
 
-  design: Design = field(init=False)
+  design: Design = attr.ib(init=False)
+  """The underlying design of the component"""
 
   @staticmethod
   def from_dict(cdict: dict) -> Component:

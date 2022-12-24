@@ -46,7 +46,41 @@ class SystemVerilogBuilder(GenericBuilder):
       self.write_line(f" * {line}")
     self.write_line(" */")
 
-  def module(self, module: designer.Component) -> None:
+  def moduleDefinition(self, module: designer.Component) -> None:
+    module_line = f"module {module.name}"
+    if (len(module.parameters) > 0):
+      module_line += " #("
+    else:
+      module_line += " ("
+    self.write_line(module_line)
+    self.tab_in()
+
+    if len(module.parameters) > 0:
+      for p in module.parameters:
+        self.write_line(self.parameterDefinition(p))
+      self.tab_out()
+      self.write_line(") (")
+
+    for p in module.ports:
+      self.write_line(self.portDefinition(p))
+
+  def parameterDefinition(self, param: designer.Parameter) -> str:
+    ret_str = "parameter "
+    if not param.param_type is None:
+      ret_str += f"{param.param_type} "
+    ret_str += f"{param.name} "
+    if not param.default is None:
+      ret_str += f"= {param.default};"
+    else:
+      ret_str[-1] = ';'
+
+  def parameterDefinition(self, port: designer.Port) -> str:
+    ret_str = f"{port.direction} {port.signal_type}"
+    if port.width > 1:
+      ret_str += f"[{port.width - 1}:0] "
+    ret_str += f"{port.name}"
+
+  def endModule(self) -> None:
     pass
 
   def register(self, reg: designer.Register) -> None:

@@ -17,7 +17,9 @@
 ##########################################################################
 
 from __future__ import annotations
-from attr import define, field, validators
+
+from attr import validators
+import attr
 
 import rtlpy.utils as utils
 from rtlpy.designer.types import AccessType
@@ -27,30 +29,30 @@ class OverlappingMemoryException (Exception):
   pass
 
 
-@define
+@attr.s
 class Field:
   """Class to represent a field in a memory map
   """
 
-  name: str = field(validator=utils.name_validator)
+  name: str = attr.ib(validator=utils.name_validator)
   """The name of the Field"""
 
-  access: AccessType = field(validator=validators.instance_of(AccessType))
+  access: AccessType = attr.ib(validator=validators.instance_of(AccessType))
   """The access type of the field"""
 
-  lsb_pos: int = field(validator=validators.instance_of(int))
+  lsb_pos: int = attr.ib(validator=validators.instance_of(int))
   """The offset of the Field's LSB in the register"""
 
-  width: int = field(validator=validators.instance_of(int), default=1)
+  width: int = attr.ib(validator=validators.instance_of(int), default=1)
   """The width of the Field in bits"""
 
-  reset: int = field(validator=validators.instance_of(int), converter=utils.val2int, default=0)
+  reset: int = attr.ib(validator=validators.instance_of(int), converter=utils.val2int, default=0)
   """The value of the field upon reset"""
 
-  volatile: bool = field(validator=validators.instance_of(bool), default=False)
+  volatile: bool = attr.ib(validator=validators.instance_of(bool), default=False)
   """Whether the field is volatile (aka will change without user input)"""
 
-  randomizable: bool = field(validator=validators.instance_of(bool), default=True)
+  randomizable: bool = attr.ib(validator=validators.instance_of(bool), default=True)
   """Whether the field is randomizable in sim"""
 
   def overlaps(self, fld: Field) -> bool:
@@ -69,17 +71,18 @@ class Field:
       (fld.lsb_pos <= self.lsb_pos + self.width - 1)
 
 
+@attr.s
 class Register:
   """Class to represent a Register in a memory map
   """
 
-  name: str = field(validator=utils.name_validator)
+  name: str = attr.ib(validator=utils.name_validator)
   """The name of the Register"""
 
-  width: int = field(validator=validators.instance_of(int))
+  width: int = attr.ib(validator=validators.instance_of(int))
   """The width of the register in bits"""
 
-  _fields: list[Field] = field(factory=list, init=False)
+  _fields: list[Field] = attr.ib(factory=list, init=False)
   """List of fields in the register"""
 
   def addField(self, fld: Field) -> None:
@@ -140,5 +143,6 @@ class Register:
     return self._fields[idx]
 
 
+@attr.s
 class MemoryMap:
   pass
