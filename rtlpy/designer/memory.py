@@ -29,6 +29,10 @@ class OverlappingMemoryException (Exception):
   pass
 
 
+class RegisterWidthException (Exception):
+  pass
+
+
 @attr.s
 class Field:
   """Class to represent a field in a memory map
@@ -144,5 +148,36 @@ class Register:
 
 
 @attr.s
+class AddressBlock:
+  """Class to represent an AddressBlock in a memory map
+  """
+
+  name: str = attr.ib(validator=utils.name_validator)
+  """The name of the AddressBlock"""
+
+  width: int = attr.ib(validator=validators.instance_of(int))
+  """The width of the registers of the block in bytes"""
+
+  _regs: dict[int, Register] = attr.ib(factory=list, init=False)
+  """List of registers in the AddressBlock"""
+
+  def addReg(self, reg: Register, addr: int) -> None:
+    """Adds the provided register at the provided register
+
+    Args:
+        reg (Register): The register to add to the AddressBlock
+    """
+    if (reg.width != self.width * 8):
+      raise RegisterWidthException(f"Cannot add register {reg.name} to AddressBlock {self.name}:" +
+                                   f" The register width ({reg.width} bits) it not compatible")
+
+    for a, r in self._regs.items():
+      if (addr <= a + self.width - 1) and (a <= addr + self.width - 1):
+        raise OverlappingMemoryException(f"Cannot add field {reg.name} to register {self.name}:" +
+                                         f" overlaps with {r.name}")
+
+    self._regs[addr] = reg
+
+
 class MemoryMap:
   pass

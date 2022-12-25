@@ -20,7 +20,6 @@
 
 import pytest
 import rtlpy.designer as designer
-from rtlpy.designer.memory import OverlappingMemoryException
 
 
 def test_simpleField():

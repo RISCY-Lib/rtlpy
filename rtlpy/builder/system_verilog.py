@@ -61,24 +61,28 @@ class SystemVerilogBuilder(GenericBuilder):
       self.tab_out()
       self.write_line(") (")
 
-    for p in module.ports:
-      self.write_line(self.portDefinition(p))
+    for port in module.ports:
+      self.write_line(self.portDefinition(port))
 
   def parameterDefinition(self, param: designer.Parameter) -> str:
     ret_str = "parameter "
-    if not param.param_type is None:
+    if param.param_type is not None:
       ret_str += f"{param.param_type} "
     ret_str += f"{param.name} "
-    if not param.default is None:
+    if param.default is not None:
       ret_str += f"= {param.default};"
     else:
       ret_str[-1] = ';'
 
-  def parameterDefinition(self, port: designer.Port) -> str:
+    return ret_str
+
+  def portDefinition(self, port: designer.Port) -> str:
     ret_str = f"{port.direction} {port.signal_type}"
     if port.width > 1:
       ret_str += f"[{port.width - 1}:0] "
     ret_str += f"{port.name}"
+
+    return ret_str
 
   def endModule(self) -> None:
     pass
