@@ -18,8 +18,9 @@
 """This module contains a generic builder class
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import List
 
 import rtlpy.designer as designer
 
@@ -52,20 +53,42 @@ class GenericBuilder (ABC):
   def write_line(self, line: str) -> None:
     self.file.write(f"{self.tab()}{line}\n")
 
+  def write_lines(self, lines: list[str]) -> None:
+    for line in lines:
+      self.write_line(line)
+
+  def write_aligned_lines(self, lines: list[list[str]]) -> None:
+    # Check all lines are the same length
+    num_cols = len(lines[0])
+    max_len = [0] * num_cols
+    for line in lines:
+      if len(line) != num_cols:
+        raise ValueError(f"Different length lines passed to {type(self)} ({num_cols}" +
+                         f" != {len(line)})")
+
+      for idx, col in enumerate(line):
+        max_len[idx] = max(len(col), max_len[idx])
+
+    for line in lines:
+      print_str = ""
+      for idx, col in enumerate(line):
+        print_str += f"{col: >{max_len[idx]}}"
+      self.write_line(print_str)
+
   @abstractmethod
   def line_comment(self, comment: str) -> None:
     pass
 
   @abstractmethod
-  def block_comment(self, comment_lines: List[str]) -> None:
+  def block_comment(self, comment_lines: list[str]) -> None:
     pass
 
   def module(self, module: designer.Component) -> None:
-    self.moduleDefinition(module)
-    self.endModule()
+    self.module_definition(module)
+    self.end_module()
 
   @abstractmethod
-  def moduleDefinition(self, module: designer.Component) -> None:
+  def module_definition(self, module: designer.Component) -> None:
     """Creates the module definition from the component
 
     Args:
@@ -74,7 +97,7 @@ class GenericBuilder (ABC):
     pass
 
   @abstractmethod
-  def endModule(self) -> None:
+  def end_module(self) -> None:
     pass
 
   @abstractmethod

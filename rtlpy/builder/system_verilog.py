@@ -18,6 +18,8 @@
 """This module contains a SystemVerilog builder class
 """
 
+from __future__ import annotations
+
 from rtlpy.builder.generic import GenericBuilder
 import rtlpy.designer as designer
 from typing import List
@@ -46,7 +48,7 @@ class SystemVerilogBuilder(GenericBuilder):
       self.write_line(f" * {line}")
     self.write_line(" */")
 
-  def moduleDefinition(self, module: designer.Component) -> None:
+  def module_definition(self, module: designer.Component) -> None:
     module_line = f"module {module.name}"
     if (len(module.parameters) > 0):
       module_line += " #("
@@ -56,27 +58,26 @@ class SystemVerilogBuilder(GenericBuilder):
     self.tab_in()
 
     if len(module.parameters) > 0:
+      params = []
       for p in module.parameters:
-        self.write_line(self.parameterDefinition(p))
+        params.append(self.parameter_definition(p))
+      self.write_aligned_lines(params)
       self.tab_out()
       self.write_line(") (")
 
     for port in module.ports:
-      self.write_line(self.portDefinition(port))
+      self.write_line(self.port_definition(port))
 
-  def parameterDefinition(self, param: designer.Parameter) -> str:
-    ret_str = "parameter "
-    if param.param_type is not None:
-      ret_str += f"{param.param_type} "
-    ret_str += f"{param.name} "
-    if param.default is not None:
-      ret_str += f"= {param.default};"
-    else:
-      ret_str[-1] = ';'
+  def parameter_definition(self, param: designer.Parameter) -> list[str]:
+    ret_val: list[str] = [] * 4
+    ret_val[0] = "parameter "
+    ret_val[1] = "" if param.param_type is None else f"{param.param_type} "
+    ret_val[2] = f"{param.name} "
+    ret_val[3] = "" if param.default is None else f"= {param.default}"
 
-    return ret_str
+    return ret_val
 
-  def portDefinition(self, port: designer.Port) -> str:
+  def port_definition(self, port: designer.Port) -> str:
     ret_str = f"{port.direction} {port.signal_type}"
     if port.width > 1:
       ret_str += f"[{port.width - 1}:0] "
@@ -84,7 +85,7 @@ class SystemVerilogBuilder(GenericBuilder):
 
     return ret_str
 
-  def endModule(self) -> None:
+  def end_module(self) -> None:
     pass
 
   def register(self, reg: designer.Register) -> None:

@@ -18,6 +18,8 @@
 
 from __future__ import annotations
 
+from typing import Iterator
+
 from attr import validators
 import attr
 
@@ -58,6 +60,8 @@ class Field:
 
   randomizable: bool = attr.ib(validator=validators.instance_of(bool), default=True)
   """Whether the field is randomizable in sim"""
+
+  comment: str | None = attr.ib(default=None)
 
   def overlaps(self, fld: Field) -> bool:
     """Checks if this field overlaps bit positions with the provided field
@@ -145,6 +149,10 @@ class Register:
         Field: The field at the given index
     """
     return self._fields[idx]
+
+  def __iter__(self) -> Iterator[Field]:
+    for fld in self._fields:
+      yield fld
 
 
 @attr.s
