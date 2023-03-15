@@ -104,7 +104,6 @@ class AccessType (Enum):
     format_label = label.replace(" ", "_").upper()
 
     for access in cls:
-      print(type(access))
       if (format_label == access.name):
         return access
       elif (format_label == access.value):

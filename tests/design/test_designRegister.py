@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2023, Benjamin Davis                                     #
+# Copyright (C) 2022, Benjamin Davis                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -15,41 +15,41 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
+"""Module to test the rtlpy.design.Field class
+"""
 
-MINIMUM_FIELD_DEFINITION = {
-  "name": "test_name"
-}
 
-FULL_FIELD_DEFINITION = {
-  "name": "abacadabra",
-  "size": 4,
-  "lsb_pos": 1,
-  "access": "WC",
-  "volatile": True,
-  "reset": 10,
-  "randomizable": False,
-}
+from rtlpy.design import Register
 
-RESERVED_FIELD_DEFINITION = {
-  "name": "part_id",
-  "size": 8,
-  "lsb_pos": 0,
-  "access": "RO",
-  "reset": 0xFA,
-  "randomizable": False,
-  "reserved": True
-}
+import sys
+import os
+sys.path.insert(0, os.path.abspath('.'))
 
-MINIMUM_REGISTER_DEFINITION = {
-  "name": "test_reg"
-}
+import design_test_definitions as test_defs  # noqa: E402
 
-FULL_REGISTER_DEFINITION = {
-  "name": "full_reg",
-  "coverage": "UVM_FULL_COVERAGE",
-  "addr": 0x10,
-  "fields": [
-    MINIMUM_FIELD_DEFINITION,
-    FULL_FIELD_DEFINITION
-  ]
-}
+
+def test_defaultRegister():
+  reg = Register(name="test_name")
+
+  assert reg.name == "test_name"
+  assert reg.addr == 0
+  assert len(reg.fields) == 0
+  assert reg.coverage == "UVM_NO_COVERAGE"
+
+
+def test_simpleRegisterFromDict():
+  reg = Register.from_dict(test_defs.MINIMUM_REGISTER_DEFINITION)
+
+  assert reg.name == test_defs.MINIMUM_REGISTER_DEFINITION["name"]
+  assert reg.addr == 0
+  assert len(reg.fields) == 0
+  assert reg.coverage == "UVM_NO_COVERAGE"
+
+
+def test_fullRegisterFromDict():
+  reg = Register.from_dict(test_defs.FULL_REGISTER_DEFINITION)
+
+  assert reg.name == test_defs.FULL_REGISTER_DEFINITION["name"]
+  assert reg.addr == 16
+  assert len(reg.fields) == 2
+  assert reg.coverage == "UVM_FULL_COVERAGE"

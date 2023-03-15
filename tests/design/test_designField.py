@@ -18,8 +18,9 @@
 """Module to test the rtlpy.design.Field class
 """
 
+import pytest
 
-from rtlpy.design import Field, AccessType
+from rtlpy.design import Field, AccessType, InvalidMemoryComponent
 
 import sys
 import os
@@ -38,6 +39,7 @@ def test_defaultField():
   assert not fld.volatile
   assert fld.reset == 0
   assert fld.randomizable
+  assert not fld.reserved
 
 
 def test_fullField():
@@ -48,7 +50,8 @@ def test_fullField():
     access=AccessType.WRITE_CLEARS,
     volatile=True,
     reset=10,
-    randomizable=False
+    randomizable=False,
+    reserved=True
   )
 
   assert fld.name == "fld_name"
@@ -58,6 +61,7 @@ def test_fullField():
   assert fld.volatile
   assert fld.reset == 10
   assert not fld.randomizable
+  assert fld.reserved
 
 
 def test_simpleFieldFromDict():
@@ -70,15 +74,69 @@ def test_simpleFieldFromDict():
   assert not fld.volatile
   assert fld.reset == 0
   assert fld.randomizable
+  assert not fld.reserved
 
 
 def test_fullFieldFromDict():
   fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
 
   assert fld.name == test_defs.FULL_FIELD_DEFINITION['name']
-  assert fld.size == 2
+  assert fld.size == 4
   assert fld.lsb_pos == 1
   assert fld.access is AccessType.WRITE_CLEARS
   assert fld.volatile
   assert fld.reset == 10
   assert not fld.randomizable
+  assert not fld.reserved
+
+
+def test_reservedFieldFromDict():
+  fld = Field.from_dict(test_defs.RESERVED_FIELD_DEFINITION)
+
+  assert fld.name == test_defs.RESERVED_FIELD_DEFINITION['name']
+  assert fld.size == 8
+  assert fld.lsb_pos == 0
+  assert fld.access is AccessType.READ_ONLY
+  assert not fld.volatile
+  assert fld.reset == 0xFA
+  assert not fld.randomizable
+  assert fld.reserved
+
+
+@pytest.mark.parametrize("name", [
+  ("bad name"),
+  ("but_why?")
+])
+def test_invalidField_BadName(name):
+  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+
+  fld.name = name
+
+  with pytest.raises(InvalidMemoryComponent) as imc:
+    fld.validate()
+
+  assert imc.value.errors[0] == "Invalid field name"
+
+
+def test_invalidField_RandomizableAndReserved():
+  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+
+  fld.randomizable = True
+  fld.reserved = True
+
+  with pytest.raises(InvalidMemoryComponent) as imc:
+    fld.validate()
+
+  assert imc.value.errors[0] == "Field cannot be randomizable and reserved"
+
+
+def test_invalidField_ResetSize():
+  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+
+  fld.reset = 0xFF
+  fld.size = 2
+
+  with pytest.raises(InvalidMemoryComponent) as imc:
+    fld.validate()
+
+  assert imc.value.errors[0] == "Reset value does not fit in field"
