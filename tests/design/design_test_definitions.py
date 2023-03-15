@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, Benjamin Davis                                     #
+# Copyright (C) 2023, Benjamin Davis                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -16,5 +16,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from rtlpy.design.types import *  # noqa: F401, F403
-from rtlpy.design.memory import *  # noqa: F401, F403
+MINIMUM_FIELD_DEFINITION = {
+  "name": "test_name"
+}
+
+FULL_FIELD_DEFINITION = {
+  "name": "abacadabra",
+  "size": 2,
+  "lsb_pos": 1,
+  "access": "WC",
+  "volatile": True,
+  "reset": 10,
+  "randomizable": False
+}
