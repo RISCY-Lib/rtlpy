@@ -1,5 +1,5 @@
 ##########################################################################
-# rtlpy is a open-source utility library for RTL developers              #
+# Python library to help with the automatic creation of RTL              #
 # Copyright (C) 2022, Benjamin Davis                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
@@ -16,10 +16,4 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-VERSION = {"major": 0, "minor": 0, "patch": 0, "status": "alpha"}
-"""Version Dictionary (keys: major, minor, patch, status)"""
-
-if (VERSION['status'] != ''):
-  __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}-{VERSION['status']}"
-else:
-  __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}"
+from rtlpy.design.types import *  # noqa: F401, F403
