@@ -44,3 +44,10 @@ def test_valid_name(val, expected):
 ])
 def test_val2int(val, expected):
   assert utils.val2int(val) == expected
+
+@pytest.mark.parametrize("val,expected", [
+  ("2 3\n15 16", ["2  3", "15 16"]),
+  (["input wire test", "output reg val"], ["input  wire test", "output reg  val"])
+])
+def test_tabular_format(val, expected):
+  assert utils.tabular_format(val) == expected

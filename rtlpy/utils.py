@@ -16,6 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
+from __future__ import annotations
+
 import re
 from typing import Any
 
@@ -40,6 +42,17 @@ def name_validator(self: Any, attribute: Any, val: Any) -> None:
 
 
 def val2int(val: Any) -> int:
+  """Converts a value to an integer.
+  If the value is a string then it converts it from 0x/x format or
+  SystemVerilog formats to integers.
+  Otherwise the function just returns int(val)
+
+  Args:
+      val (Any): The value to convert to the int
+
+  Returns:
+      int: The integer from the value
+  """
   if not isinstance(val, str):
     return int(val)
 
@@ -60,3 +73,37 @@ def val2int(val: Any) -> int:
     return int(val[val.find("'b")+2:], base=2)
 
   return int(val)
+
+
+def tabular_format(lines: list[str] | str) -> list[str]:
+  """Converts the provided lines or string to a tabularly formatted string.
+  This is a string where the start of each word is aligned
+
+  Args:
+      lines (list[str] | str): List of strings where each string is a line,
+          or a string which contains the full unformatted table
+
+  Returns:
+      list[str]: The tabularly formatted string. Each string does not have leading
+          or trailing whitespace or newline characters
+  """
+  if isinstance(lines, str):
+    lines = lines.split("\n")
+
+  table = []
+  for line in lines:
+    table.append(line.split())
+
+  col_len = [0] * max([len(row) for row in table])
+  for row in table:
+    for idx, cell in enumerate(row):
+      col_len[idx] = max(col_len[idx], len(cell))
+
+  ret_val = []
+  for row in table:
+    line = ""
+    for idx, cell in enumerate(row):
+      line += f"{cell: <{col_len[idx]}} "
+    ret_val.append(line.strip())
+  
+  return ret_val
