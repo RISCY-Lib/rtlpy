@@ -53,8 +53,6 @@ class Field:
   """Field name"""
   size: int = 1
   """Size of the field in bits"""
-  lsb_pos: int = 0
-  """Position of the LSB in register"""
   access: AccessType = AccessType.READ_ONLY
   """Access Policy of the Field"""
   reset: int = 0
@@ -134,11 +132,11 @@ class Register:
 
   name: str
   """The name of the register"""
-  addr: int = 0
-  """The address of the register in the MemoryMap"""
   coverage: str = "UVM_NO_COVERAGE"
   """The UVM Coverage type to apply in a RAL"""
-  fields: list[Field] = dataclasses.field(default_factory=list)
+  dimension: int = 1
+  """The dimension of this register (the number of times it repeats in the Map)"""
+  fields: dict[int, Field] = dataclasses.field(default_factory=dict)
   """A list of the fields in the register bank"""
 
   def validate(self) -> None:
@@ -190,3 +188,22 @@ class Register:
     reg.validate()
 
     return reg
+
+
+@dataclass
+class AddressBlock:
+  """An AddressBlock in a MemoryMap which represents a collection of registers"""
+  pass
+
+
+@dataclass
+class MemoryMap:
+  """The top-level MemoryMap of a device/component"""
+  pass
+
+
+##########################################################################
+# From Dict Methods
+##########################################################################
+def memory_from_dict(definition: dict) -> Field | Register | AddressBlock | MemoryMap:
+  pass

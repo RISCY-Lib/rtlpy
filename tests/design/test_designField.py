@@ -22,11 +22,7 @@ import pytest
 
 from rtlpy.design import Field, AccessType, InvalidMemoryComponent
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath('.'))
-
-import design_test_definitions as test_defs  # noqa: E402
+import tests._definitions.design_test_definitions as test_defs
 
 
 def test_defaultField():

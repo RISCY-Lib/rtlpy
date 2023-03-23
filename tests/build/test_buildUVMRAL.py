@@ -15,38 +15,17 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-"""Module to test the rtlpy.design.Register class
+"""Module to test the the ability of RTLPY to build a UVM_RAL from a MemoryMap definition
 """
 
+from rtlpy.design import MemoryMap
+import rtlpy.build.uvm_ral as uvm_ral
 
-from rtlpy.design import Register
+import tests._definitions.memory_map_definitions as test_defs
 
+def test_TrafficLightFullRAL():
+  mem_map = MemoryMap.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
-import tests._definitions.design_test_definitions as test_defs
+  ral_str = uvm_ral.memmap_to_ral(mem_map)
 
-
-def test_defaultRegister():
-  reg = Register(name="test_name")
-
-  assert reg.name == "test_name"
-  assert reg.addr == 0
-  assert len(reg.fields) == 0
-  assert reg.coverage == "UVM_NO_COVERAGE"
-
-
-def test_simpleRegisterFromDict():
-  reg = Register.from_dict(test_defs.MINIMUM_REGISTER_DEFINITION)
-
-  assert reg.name == test_defs.MINIMUM_REGISTER_DEFINITION["name"]
-  assert reg.addr == 0
-  assert len(reg.fields) == 0
-  assert reg.coverage == "UVM_NO_COVERAGE"
-
-
-def test_fullRegisterFromDict():
-  reg = Register.from_dict(test_defs.FULL_REGISTER_DEFINITION)
-
-  assert reg.name == test_defs.FULL_REGISTER_DEFINITION["name"]
-  assert reg.addr == 16
-  assert len(reg.fields) == 2
-  assert reg.coverage == "UVM_FULL_COVERAGE"
+  assert ral_str == test_defs.TRAFFIC_LIGHT_RAL_STR

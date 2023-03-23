@@ -15,38 +15,3 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-"""Module to test the rtlpy.design.Register class
-"""
-
-
-from rtlpy.design import Register
-
-
-import tests._definitions.design_test_definitions as test_defs
-
-
-def test_defaultRegister():
-  reg = Register(name="test_name")
-
-  assert reg.name == "test_name"
-  assert reg.addr == 0
-  assert len(reg.fields) == 0
-  assert reg.coverage == "UVM_NO_COVERAGE"
-
-
-def test_simpleRegisterFromDict():
-  reg = Register.from_dict(test_defs.MINIMUM_REGISTER_DEFINITION)
-
-  assert reg.name == test_defs.MINIMUM_REGISTER_DEFINITION["name"]
-  assert reg.addr == 0
-  assert len(reg.fields) == 0
-  assert reg.coverage == "UVM_NO_COVERAGE"
-
-
-def test_fullRegisterFromDict():
-  reg = Register.from_dict(test_defs.FULL_REGISTER_DEFINITION)
-
-  assert reg.name == test_defs.FULL_REGISTER_DEFINITION["name"]
-  assert reg.addr == 16
-  assert len(reg.fields) == 2
-  assert reg.coverage == "UVM_FULL_COVERAGE"
