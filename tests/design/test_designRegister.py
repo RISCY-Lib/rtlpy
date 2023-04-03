@@ -38,7 +38,7 @@ def test_simpleRegisterFromDict():
   reg = Register.from_dict(test_defs.MINIMUM_REGISTER_DEFINITION)
 
   assert reg.name == test_defs.MINIMUM_REGISTER_DEFINITION["name"]
-  assert reg.dimension == 0
+  assert reg.dimension == 1
   assert len(reg.fields) == 0
   assert reg.coverage == "UVM_NO_COVERAGE"
 

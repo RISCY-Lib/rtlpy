@@ -20,7 +20,9 @@
 
 import pytest
 
-from rtlpy.design import Field, AccessType, InvalidMemoryComponent
+import logging
+
+from rtlpy.design import Field, AccessType
 
 import tests._definitions.design_test_definitions as test_defs
 
@@ -97,36 +99,43 @@ def test_reservedFieldFromDict():
   ("bad name"),
   ("but_why?")
 ])
-def test_invalidField_BadName(name):
+def test_invalidField_BadName(name, caplog):
   fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
 
   fld.name = name
 
-  with pytest.raises(InvalidMemoryComponent) as imc:
-    fld.validate()
+  assert not fld.valid()
 
-  assert imc.value.errors[0] == "Invalid field name"
+  assert caplog.record_tuples == [
+    ("rtlpy.design.memory", logging.ERROR, f"Field ({name}) has an invalid name.")
+  ]
 
 
-def test_invalidField_RandomizableAndReserved():
+def test_invalidField_RandomizableAndReserved(caplog):
   fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
 
   fld.randomizable = True
   fld.reserved = True
 
-  with pytest.raises(InvalidMemoryComponent) as imc:
-    fld.validate()
+  assert not fld.valid()
 
-  assert imc.value.errors[0] == "Field cannot be randomizable and reserved"
+  assert caplog.record_tuples == [
+    ("rtlpy.design.memory",
+     logging.WARNING,
+     f"Field ({fld.name}) cannot be randomizable and reserved.")
+  ]
 
 
-def test_invalidField_ResetSize():
+def test_invalidField_ResetSize(caplog):
   fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
 
   fld.reset = 0xFF
   fld.size = 2
 
-  with pytest.raises(InvalidMemoryComponent) as imc:
-    fld.validate()
+  assert not fld.valid()
 
-  assert imc.value.errors[0] == "Reset value does not fit in field"
+  assert caplog.record_tuples == [
+    ("rtlpy.design.memory",
+     logging.ERROR,
+     f"Field ({fld.name}) reset value (255) does not fit in field (size: 2).")
+  ]

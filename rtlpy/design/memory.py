@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from typing import Optional
 
+import logging
+
 import dataclasses
 from dataclasses import dataclass
 
@@ -28,27 +30,16 @@ from rtlpy.design import AccessType
 import rtlpy.utils as utils
 
 
+_log = logging.getLogger(__name__)
+_log.addHandler(logging.NullHandler())
+
+
 ##########################################################################
 # Exception Definitions
 ##########################################################################
 class MissingDefinitionException (Exception):
   """The Exception raised when converting using a dictionary that is missing a required field"""
   pass
-
-
-class OverlappingMemoryException (Exception):
-  """The Exception raised when trying to add a Register, Field, or Address block that overlaps
-  with an existing memory component.
-  """
-  pass
-
-
-class InvalidMemoryComponent (Exception):
-  """Exception which is use to communicate issues in the definition of a memory component"""
-  def __init__(self, message: str, errors: list[str]):
-    super().__init__(message)
-
-    self.errors = errors
 
 
 ##########################################################################
@@ -73,23 +64,26 @@ class Field:
   reserved: bool = False
   """Whether the field is a reserved field"""
 
-  def validate(self) -> None:
+  def valid(self) -> bool:
     """Checks the Field is validly defined
 
-    Raises:
-        InvalidMemoryComponent: Raised if there are issues with the field definition
+    Returns:
+        bool: Returns true if the Field is valid. False otherwise
     """
-    errors = []
+    ret_val = True
 
     if not utils.valid_name(self.name):
-      errors.append("Invalid field name")
+      _log.error(f"Field ({self.name}) has an invalid name.")
+      ret_val = False
     if self.reset.bit_length() > self.size:
-      errors.append("Reset value does not fit in field")
+      _log.error(f"Field ({self.name}) reset value ({self.reset})" +
+                 f" does not fit in field (size: {self.size}).")
+      ret_val = False
     if self.randomizable and self.reserved:
-      errors.append("Field cannot be randomizable and reserved")
+      _log.warning(f"Field ({self.name}) cannot be randomizable and reserved.")
+      ret_val = False
 
-    if len(errors) > 0:
-      raise InvalidMemoryComponent(f"Field {self.name} is not correctly defined", errors)
+    return ret_val
 
   @staticmethod
   def from_dict(definition: dict) -> Field:
@@ -110,6 +104,7 @@ class Field:
 
     for req_key in required_keys:
       if req_key not in definition:
+        _log.error(f"Missing {req_key} key from dict during Field conversion")
         raise MissingDefinitionException(f"Missing {req_key} key from dict during Field conversion")
 
     fld = Field(definition['name'])
@@ -155,9 +150,12 @@ class Register:
         bool: True if the field was successfully inserted. False otherwise
     """
     if lsb_pos is None:
-      last_field_lsb = max(self.fields.keys())
-      lsb_pos = self.fields[last_field_lsb].size + last_field_lsb
-      self.fields[lsb_pos] = fld
+      if len(self.fields.keys()) == 0:
+        self.fields[0] = fld
+      else:
+        last_field_lsb = max(self.fields.keys())
+        lsb_pos = self.fields[last_field_lsb].size + last_field_lsb
+        self.fields[lsb_pos] = fld
 
       return True
 
@@ -172,19 +170,19 @@ class Register:
 
     return True
 
-  def validate(self) -> None:
+  def valid(self) -> bool:
     """Checks the Register is validly defined
 
     Raises:
-        InvalidMemoryComponent: Raised if there are issues with the register definition
+        bool: Returns true if the Field is valid. False otherwise
     """
-    errors = []
+    ret_val = True
 
     if not utils.valid_name(self.name):
-      errors.append("Invalid register name")
+      _log.error(f"Register ({self.name}) has an invalid name.")
+      ret_val = False
 
-    if len(errors) > 0:
-      raise InvalidMemoryComponent(f"Field {self.name} is not correctly defined", errors)
+    return ret_val
 
   @staticmethod
   def from_dict(definition: dict) -> Register:
@@ -201,14 +199,18 @@ class Register:
     Returns:
         Register: The register derived from the definition
     """
-    errors = []
     required_keys = ['name']
 
     for req_key in required_keys:
       if req_key not in definition:
-        raise MissingDefinitionException(f"Missing {req_key} key from dict during Field conversion")
+        err = f"Missing {req_key} key from dict during Register conversion"
+        _log.error(err)
+        raise MissingDefinitionException(err)
 
     reg = Register(definition['name'])
+
+    if 'dimension' in definition:
+      reg.dimension = definition['dimension']
 
     if 'coverage' in definition:
       reg.coverage = definition['coverage']
@@ -219,7 +221,7 @@ class Register:
 
         reg.add_field(Field.from_dict(field), lsb_pos)
 
-    reg.validate()
+    reg.valid()
 
     return reg
 
@@ -240,4 +242,4 @@ class MemoryMap:
 # From Dict Methods
 ##########################################################################
 def memory_from_dict(definition: dict) -> Field | Register | AddressBlock | MemoryMap:
-  pass
+  raise NotImplementedError("memory_from_dict not implemented")
