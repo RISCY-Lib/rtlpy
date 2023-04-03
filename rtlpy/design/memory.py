@@ -18,6 +18,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import dataclasses
 from dataclasses import dataclass
 
@@ -31,6 +33,13 @@ import rtlpy.utils as utils
 ##########################################################################
 class MissingDefinitionException (Exception):
   """The Exception raised when converting using a dictionary that is missing a required field"""
+  pass
+
+
+class OverlappingMemoryException (Exception):
+  """The Exception raised when trying to add a Register, Field, or Address block that overlaps
+  with an existing memory component.
+  """
   pass
 
 
@@ -107,8 +116,6 @@ class Field:
 
     if 'size' in definition:
       fld.size = definition['size']
-    if 'lsb_pos' in definition:
-      fld.lsb_pos = definition['lsb_pos']
     if 'access' in definition:
       fld.access = AccessType.from_string(definition['access'])
     if 'reset' in definition:
@@ -119,9 +126,6 @@ class Field:
       fld.randomizable = definition['randomizable']
     if 'reserved' in definition:
       fld.reserved = definition['reserved']
-
-    # Check the generated field is valid
-    fld.validate()
 
     return fld
 
@@ -138,6 +142,35 @@ class Register:
   """The dimension of this register (the number of times it repeats in the Map)"""
   fields: dict[int, Field] = dataclasses.field(default_factory=dict)
   """A list of the fields in the register bank"""
+
+  def add_field(self, fld: Field, lsb_pos: Optional[int] = None) -> bool:
+    """Adds the field at the given lsb position
+
+    Args:
+        fld (Field): The field to add
+        lsb_pos (int, optional): The lsb_position to insert. Defaults to None.
+          When None, the field is inserted at the first valid lsb position
+
+    Returns:
+        bool: True if the field was successfully inserted. False otherwise
+    """
+    if lsb_pos is None:
+      last_field_lsb = max(self.fields.keys())
+      lsb_pos = self.fields[last_field_lsb].size + last_field_lsb
+      self.fields[lsb_pos] = fld
+
+      return True
+
+    # Check if the field overlaps
+    for lsb, f in self.fields.items():
+      if lsb_pos in range(lsb, lsb + f.size):
+        return False
+      if lsb_pos + fld.size - 1 in range(lsb, lsb + f.size - 1):
+        return False
+
+    self.fields[lsb_pos] = fld
+
+    return True
 
   def validate(self) -> None:
     """Checks the Register is validly defined
@@ -168,6 +201,7 @@ class Register:
     Returns:
         Register: The register derived from the definition
     """
+    errors = []
     required_keys = ['name']
 
     for req_key in required_keys:
@@ -176,14 +210,14 @@ class Register:
 
     reg = Register(definition['name'])
 
-    if 'addr' in definition:
-      reg.addr = definition['addr']
     if 'coverage' in definition:
       reg.coverage = definition['coverage']
 
     if 'fields' in definition:
       for field in definition['fields']:
-        reg.fields.append(Field.from_dict(field))
+        lsb_pos = None if "lsb_pos" not in field else field['lsb_pos']
+
+        reg.add_field(Field.from_dict(field), lsb_pos)
 
     reg.validate()
 

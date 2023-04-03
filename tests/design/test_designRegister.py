@@ -29,7 +29,7 @@ def test_defaultRegister():
   reg = Register(name="test_name")
 
   assert reg.name == "test_name"
-  assert reg.addr == 0
+  assert reg.dimension == 1
   assert len(reg.fields) == 0
   assert reg.coverage == "UVM_NO_COVERAGE"
 
@@ -38,7 +38,7 @@ def test_simpleRegisterFromDict():
   reg = Register.from_dict(test_defs.MINIMUM_REGISTER_DEFINITION)
 
   assert reg.name == test_defs.MINIMUM_REGISTER_DEFINITION["name"]
-  assert reg.addr == 0
+  assert reg.dimension == 0
   assert len(reg.fields) == 0
   assert reg.coverage == "UVM_NO_COVERAGE"
 
@@ -47,6 +47,6 @@ def test_fullRegisterFromDict():
   reg = Register.from_dict(test_defs.FULL_REGISTER_DEFINITION)
 
   assert reg.name == test_defs.FULL_REGISTER_DEFINITION["name"]
-  assert reg.addr == 16
+  assert reg.dimension == 4
   assert len(reg.fields) == 2
   assert reg.coverage == "UVM_FULL_COVERAGE"

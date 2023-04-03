@@ -23,6 +23,7 @@ import rtlpy.build.uvm_ral as uvm_ral
 
 import tests._definitions.memory_map_definitions as test_defs
 
+
 def test_TrafficLightFullRAL():
   mem_map = MemoryMap.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 

@@ -30,10 +30,9 @@ def test_defaultField():
 
   assert fld.name == "test_name"
   assert fld.size == 1
-  assert fld.lsb_pos == 0
   assert fld.access is AccessType.READ_ONLY
-  assert not fld.volatile
   assert fld.reset == 0
+  assert not fld.volatile
   assert fld.randomizable
   assert not fld.reserved
 
@@ -42,20 +41,18 @@ def test_fullField():
   fld = Field(
     name="fld_name",
     size=8,
-    lsb_pos=1,
     access=AccessType.WRITE_CLEARS,
-    volatile=True,
     reset=10,
+    volatile=True,
     randomizable=False,
     reserved=True
   )
 
   assert fld.name == "fld_name"
   assert fld.size == 8
-  assert fld.lsb_pos == 1
   assert fld.access is AccessType.WRITE_CLEARS
-  assert fld.volatile
   assert fld.reset == 10
+  assert fld.volatile
   assert not fld.randomizable
   assert fld.reserved
 
@@ -65,7 +62,6 @@ def test_simpleFieldFromDict():
 
   assert fld.name == test_defs.MINIMUM_FIELD_DEFINITION['name']
   assert fld.size == 1
-  assert fld.lsb_pos == 0
   assert fld.access is AccessType.READ_ONLY
   assert not fld.volatile
   assert fld.reset == 0
@@ -78,10 +74,9 @@ def test_fullFieldFromDict():
 
   assert fld.name == test_defs.FULL_FIELD_DEFINITION['name']
   assert fld.size == 4
-  assert fld.lsb_pos == 1
   assert fld.access is AccessType.WRITE_CLEARS
-  assert fld.volatile
   assert fld.reset == 10
+  assert fld.volatile
   assert not fld.randomizable
   assert not fld.reserved
 
@@ -91,10 +86,9 @@ def test_reservedFieldFromDict():
 
   assert fld.name == test_defs.RESERVED_FIELD_DEFINITION['name']
   assert fld.size == 8
-  assert fld.lsb_pos == 0
   assert fld.access is AccessType.READ_ONLY
-  assert not fld.volatile
   assert fld.reset == 0xFA
+  assert not fld.volatile
   assert not fld.randomizable
   assert fld.reserved
 

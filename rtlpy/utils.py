@@ -105,5 +105,5 @@ def tabular_format(lines: list[str] | str) -> list[str]:
     for idx, cell in enumerate(row):
       line += f"{cell: <{col_len[idx]}} "
     ret_val.append(line.strip())
-  
+
   return ret_val

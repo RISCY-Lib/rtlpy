@@ -142,7 +142,7 @@ class control_reg extends uvm_reg;
     super.new(name, 8, build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
   endfunction
 
-  virtual function void build();
+  virtual function void build ();
     this.mod_en       = uvm_reg_field::type_id::create("mod_en",,       get_full_name());
     this.blink_yellow = uvm_reg_field::type_id::create("blink_yellow",, get_full_name());
     this.blink_red    = uvm_reg_field::type_id::create("blink_red",,    get_full_name());
@@ -154,6 +154,7 @@ class control_reg extends uvm_reg;
     this.profile.configure      (this, 1, 3, "RW", 0, 1'h0, 1, 0, 0);
   endfunction
 endclass
+
 
 // Register definition for status register
 class status_reg extends uvm_reg;
@@ -184,7 +185,7 @@ class timer_reg extends uvm_reg;
     super.new(name, 8, build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
   endfunction
 
-  virtual function void build();
+  virtual function void build ();
     this.timer_y2r = uvm_reg_field::type_id::create("timer_y2r",, get_full_name());
     this.timer_r2g = uvm_reg_field::type_id::create("timer_r2g",, get_full_name());
     this.timer_g2y = uvm_reg_field::type_id::create("timer_g2y",, get_full_name());
@@ -192,6 +193,62 @@ class timer_reg extends uvm_reg;
     this.timer_y2r.configure (this, 3, 0, "RW", 0, 3'h5, 1, 0, 0);
     this.timer_r2g.configure (this, 3, 3, "RW", 0, 3'h7, 1, 0, 0);
     this.timer_g2y.configure (this, 2, 6, "RW", 0, 2'h2, 1, 0, 0);
+  endfunction
+endclass
+
+
+// Address Block definition for setup block
+class setup_block extend uvm_reg_block;
+  `uvm_object_utils(setup_block)
+
+  rand control_reg control;
+       status_reg  status;
+  rand timer_reg   timer[2];
+
+  function new (string name = "setup_block");
+    super.new(name, build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+  endfunction
+
+  virtual function void build ();
+    this.default_map = create_map("", 0, 4, UVM_LITTLE_ENDIAN, 0);
+
+    this.control = control_reg::type_id::create("control",, get_full_name());
+    this.control.configure(this, null, "");
+    this.control.build();
+    this.default_map.add_reg(this.control, `UVM_REG_ADDR_WIDTH'h0, "RW", 0);
+
+    this.status = status_reg::type_id::create("status",, get_full_name());
+    this.status.configure(this, null, "");
+    this.status.build();
+    this.default_map.add_reg(this.status, `UVM_REG_ADDR_WIDTH'h1, "RO", 0);
+
+    this.timer[0] = timer_reg::type_id::create("timer[0]",, get_full_name());
+    this.timer[0].configure(this, null, "");
+    this.timer[0].build();
+    this.default_map.add_reg(this.timer[0], `UVM_REG_ADDR_WIDTH'h2, "RW", 0);
+
+    this.timer[1] = timer_reg::type_id::create("timer[1]",, get_full_name());
+    this.timer[1].configure(this, null, "");
+    this.timer[1].build();
+    this.default_map.add_reg(this.timer[1], `UVM_REG_ADDR_WIDTH'h3, "RW", 0);
+  endfunction
+endclass
+
+class traffic_light_ral extends uvm_reg_block;
+  `uvm_object_utils(traffic_light_ral)
+
+  rand setup_block setup;
+
+  function new (string name = "traffic_light");
+    super.new(name);
+  endfunction
+
+  function void build();
+    this.default_map = create_map("", 0, 4, UVM_LITTLE_ENDIAN, 0);
+    this.setup = setup_block::type_id::create("setup",, get_full_name());
+    this.setup.configure(this, "tb_top");
+    this.setup.build();
+    this.default_map.add_submap(this.setup.default_map, `UVM_REG_ADDR_WIDTH'h0);
   endfunction
 endclass
 """

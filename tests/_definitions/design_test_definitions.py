@@ -23,7 +23,6 @@ MINIMUM_FIELD_DEFINITION = {
 FULL_FIELD_DEFINITION = {
   "name": "abacadabra",
   "size": 4,
-  "lsb_pos": 1,
   "access": "WC",
   "volatile": True,
   "reset": 10,
@@ -33,7 +32,6 @@ FULL_FIELD_DEFINITION = {
 RESERVED_FIELD_DEFINITION = {
   "name": "part_id",
   "size": 8,
-  "lsb_pos": 0,
   "access": "RO",
   "reset": 0xFA,
   "randomizable": False,
@@ -47,7 +45,7 @@ MINIMUM_REGISTER_DEFINITION = {
 FULL_REGISTER_DEFINITION = {
   "name": "full_reg",
   "coverage": "UVM_FULL_COVERAGE",
-  "addr": 0x10,
+  "dimension": 4,
   "fields": [
     MINIMUM_FIELD_DEFINITION,
     FULL_FIELD_DEFINITION
