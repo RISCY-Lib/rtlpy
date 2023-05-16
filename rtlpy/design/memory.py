@@ -282,6 +282,14 @@ class AddressBlock:
 
     return False
 
+  def data_bytes(self) -> int:
+    """Determines the size of the data field in bytes
+
+    Returns:
+        int: The number of bytes the data field is
+    """
+    return int(self.data_size / 8)
+
   def size(self) -> int:
     """Determines the number of bytes which the AddressBlock takes up.
     Assumes all space is full and block interleaving is not permitted
@@ -472,6 +480,9 @@ class AddressBlock:
     if 'registers' in definition:
       for reg in definition['registers']:
         offset = None if "offset" not in reg else reg['offset']
+
+        if "coverage" not in reg and "coverage" in definition:
+          reg["coverage"] = definition["coverage"]
 
         blk.add_register(Register.from_dict(reg), offset)
 

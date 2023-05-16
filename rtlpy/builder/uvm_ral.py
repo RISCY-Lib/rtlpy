@@ -24,13 +24,38 @@ from rtlpy.design.memory import Register, AddressBlock
 
 
 def addrblock_to_ral(ablock: AddressBlock) -> str:
-  raise NotImplementedError("addrblock_to_ral not implemented")
+  """Convert the provided AddressBlock and all sub-components to UVM registers and blocks.
+
+  Args:
+      ablock (AddressBlock): The address block to create the UVM hierarchy from
+
+  Returns:
+      str: The string version of the generated RAL
+  """
+  env = Environment(
+    loader=PackageLoader("rtlpy.builder", "uvm_templates"),
+    lstrip_blocks=True,
+    trim_blocks=True
+  )
+
+  ral_str = ""
+
+  for _, reg in ablock.registers.items():
+    ral_str += reg_to_ral(reg, ablock.data_size) + "\n\n"
+
+  for _, subblk in ablock.sub_blocks.items():
+    ral_str += addrblock_to_ral(subblk) + "\n\n"
+
+  template = env.get_template("uvm_reg_block.jinja")
+
+  ral_str += template.render(block=ablock)
+
+  return ral_str
 
 
 def reg_to_ral(
       reg: Register,
-      data_size: int = 32,
-      coverage: str = "UVM_NO_COVERAGE"
+      data_size: int = 32
     ) -> str:
   """Convert the provided register to a UVM Register for the RAL
 
@@ -43,7 +68,7 @@ def reg_to_ral(
       str: The string version of the generated RAL
   """
   env = Environment(
-    loader=PackageLoader("rtlpy.build", "uvm_templates"),
+    loader=PackageLoader("rtlpy.builder", "uvm_templates"),
     lstrip_blocks=True,
     trim_blocks=True
   )

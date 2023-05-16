@@ -18,18 +18,15 @@
 """Module to test the the ability of RTLPY to build a UVM_RAL from a MemoryMap definition
 """
 
-import pytest
-
-from rtlpy.design import MemoryMap
-import rtlpy.build.uvm_ral as uvm_ral
+from rtlpy.design import AddressBlock
+import rtlpy.builder.uvm_ral as uvm_ral
 
 import tests._definitions.memory_map_definitions as test_defs
 
 
-@pytest.mark.skip(reason="Not implemented")
 def test_TrafficLightFullRAL():
-  mem_map = MemoryMap.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+  mem_map = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
-  ral_str = uvm_ral.memmap_to_ral(mem_map)
+  ral_str = uvm_ral.addrblock_to_ral(mem_map)
 
   assert ral_str == test_defs.TRAFFIC_LIGHT_RAL_STR

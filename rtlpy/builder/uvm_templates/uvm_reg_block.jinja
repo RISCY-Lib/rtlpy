@@ -18,47 +18,56 @@
 /** {{block.name}} - UVM register model
  * Registers:
 {% for offset, reg in block.registers|dictsort %}
- *    {{ reg.name }} - Offset: {{ offset }}
+ *    {{ reg.name }}{% if reg.dimension > 1 %}[{{reg.dimension}}]{% endif %} - Offset: {{ offset }}
 {% endfor %}
  * Sub-Blocks:
 {% for offset, subblock in block.sub_blocks|dictsort %}
- *    {{ subblock.name }} - Offset: {{ offset }}
+ *    {{ subblock.name }}{% if subblock.dimension > 1 %}[{{subblock.dimension}}]{% endif %} - Offset: {{ offset }}
 {% endfor %}
  */
-class block_{{block.name.lower()}} extends uvm_reg_block;
-  `uvm_object_utils(block_{{block.name.lower()}})
+class {{block.name.lower()}}_block extends uvm_reg_block;
+  `uvm_object_utils({{block.name.lower()}}_block)
 
   // Registers
 {% for offset, reg in block.registers|dictsort %}
   {%+ if reg.randomizable() %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
-  reg_{{reg.name.lower()}} {{ reg.name }};
+  {{reg.name.lower()}}_reg {{ reg.name }}{% if reg.dimension > 1 %}[{{reg.dimension}}]{% endif %};
 {% endfor %}
 
   // Sub-Blocks
 {% for offset, subblock in block.sub_blocks|dictsort %}
   {%+ if subblock.randomizable() %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
-  block_{{subblock.name.lower()}} {{ subblock.name }};
+  {{subblock.name.lower()}}_block {{ subblock.name }}{% if subblock.dimension > 1 %}[{{subblock.dimension}}]{% endif %};
 {% endfor %}
 
-  function new(string name = "block_{{block.name}}");
+  function new (string name = "{{block.name.lower()}}_block");
     super.new(name, build_coverage({{block.coverage}}));
   endfunction
 
-  virtual function void build();
-    this.default_map = create_map("", {{block.base_address}}, {{block.data_size / 8}},
+  // Build all register and sub-block objects
+  virtual function void build ();
+    this.default_map = create_map("", {{block.base_address}}, {{"%d" | format(block.data_bytes())}},
       {{- ""}} {% if block.endianness.lower() == "little" %}UVM_LITTLE_ENDIAN{% else %}UVM_BIG_ENDIAN{% endif %});
 
     // Registers
 {% for offset, reg in block.registers|dictsort %}
-    this.{{reg.name}} = reg_{{reg_name_lower()}}::type_id::create("{{reg.name}}",, get_full_name());
+  {% if reg.dimension == 1 %}
+    this.{{reg.name}} = {{reg.name.lower()}}_reg::type_id::create("{{reg.name}}",, get_full_name());
     this.{{reg.name}}.configure(this, null, "");
     this.{{reg.name}}.build();
-    this.default_map.add_reg(this.{{reg.name}}, {{block.addr_size}}'h{{ "%X" | format(offset)}});
+    this.default_map.add_reg(this.{{reg.name}}, {{block.addr_size}}'h{{ "%X" | format(offset)}});{{"\n"}}
+  {% else %}
+    {% for i in range(0, reg.dimension) %}
+    this.{{reg.name}}[{{i}}] = {{reg.name.lower()}}_reg::type_id::create("{{reg.name}}[{{i}}]",, get_full_name());
+    this.{{reg.name}}[{{i}}].configure(this, null, "");
+    this.{{reg.name}}[{{i}}].build();
+    this.default_map.add_reg(this.{{reg.name}}[{{i}}], {{block.addr_size}}'h{{ "%X" | format(offset + (i * block.data_bytes()))}});{{"\n"}}
+    {% endfor %}
+  {% endif %}
 {% endfor %}
-
     // Sub-Blocks
 {% for offset, subblock in block.sub_blocks|dictsort %}
-    this.{{ subblock.name }} = block_{{subblock.name.lower()}}::type_id::create("{{subblock.name}}",, get_full_name());
+    this.{{ subblock.name }} = {{subblock.name.lower()}}_block::type_id::create("{{subblock.name}}",, get_full_name());
     this.{{ subblock.name }}.build();
     this.default_map.add_submap(this.{{ subblock.name }}.default_map, {{block.addr_size}}'h{{ "%X" | format(offset)}});
 {% endfor %}

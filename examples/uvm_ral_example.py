@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from rtlpy.design.memory import Register
-import rtlpy.build.uvm_ral as ral
+import rtlpy.builder.uvm_ral as ral
 
 reg_def = {
   "name": "control",

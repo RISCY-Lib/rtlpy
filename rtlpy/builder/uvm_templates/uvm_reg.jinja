@@ -21,20 +21,20 @@
  *    {{ fld.name }} - LSB: {{ lsb }}, Width: {{ fld.size }}, Access: {{ fld.access.value }}
 {% endfor %}
  */
-class reg_{{reg.name.lower()}} extends uvm_reg;
-  `uvm_object_utils(reg_{{reg.name.lower()}})
+class {{reg.name.lower()}}_reg extends uvm_reg;
+  `uvm_object_utils({{reg.name.lower()}}_reg)
 
 {% for lsb, fld in reg.fields|dictsort %}
   {%+ if fld.randomizable %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
   uvm_reg_field {{ fld.name }};
 {% endfor %}
 
-  function new(string name = "reg_{{reg.name.lower()}}");
-    super.new(name, {{data_size}}, build_coverage({{reg.coverage}}))
+  function new (string name = "{{reg.name.lower()}}_reg");
+    super.new(name, {{data_size}}, build_coverage({{reg.coverage}}));
   endfunction
 
   // Build all register field objects
-  virtual function void build();
+  virtual function void build ();
 {% for lsb, fld in reg.fields|dictsort %}
     this.{{ fld.name }} = uvm_reg_field::type_id::create("{{ fld.name }}",, get_full_name());
 {% endfor %}
