@@ -5,7 +5,8 @@ rtlpy package
    :maxdepth: 3
    :caption: Submodules:
 
-   rtlpy/designs
+   rtlpy/design
+   rtlpy/builder
 
 Module contents
 ---------------

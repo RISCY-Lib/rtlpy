@@ -156,7 +156,7 @@ class Register:
     Args:
         fld (Field): The field to add
         lsb_pos (int, optional): The lsb_position to insert. Defaults to None.
-          When None, the field is inserted at the first valid lsb position
+            When None, the field is inserted at the first valid lsb position
 
     Returns:
         bool: True if the field was successfully inserted. False otherwise
@@ -399,8 +399,8 @@ class AddressBlock:
 
     Args:
         reg (Register): The register to add
-        offset (Optional[int], optional): The offset of the register. Defaults to None.
-          When None, the field is inserted at the first valid offset position
+        offset (int, optional): The offset of the register. Defaults to None.
+            When None, the field is inserted at the first valid offset position
 
     Returns:
         bool: True if the register was successfully added
@@ -422,7 +422,7 @@ class AddressBlock:
     Args:
         blk (AddressBlock): The sub-block to add
         offset (Optional[int], optional): The offset of the sub-block. Defaults to None.
-          When None, the field is inserted at the first valid offset position
+            When None, the field is inserted at the first valid offset position
 
     Returns:
         bool: True if the register was successfully added
@@ -443,7 +443,7 @@ class AddressBlock:
     """Converts the dictionary definition into a Register object.
     Requires the following keys: [name, addr_size, data_size]
     Accepts the optional keys:
-      [base_address, dimension, endianness, coverage, registers, sub_blocks]
+    [base_address, dimension, endianness, coverage, registers, sub_blocks]
 
     Args:
         definition (dict): The definition of the Register in dictionary form
