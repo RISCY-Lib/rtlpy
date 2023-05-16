@@ -18,11 +18,11 @@
 
 TRAFFIC_LIGHT_FULL_DEF = {
   "name": "traffic_light",
-  "address_size": 6,
+  "addr_size": 6,
   "data_size": 8,
   "endian": "little",
   "coverage": "UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP",
-  "blocks": [
+  "sub_blocks": [
     {
       "name": "setup",
       "base_address": 0,

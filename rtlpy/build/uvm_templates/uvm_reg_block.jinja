@@ -1,0 +1,66 @@
+{##########################################################################}
+{# Python library to help with the automatic creation of RTL              #}
+{# Copyright (C) 2023, Benjamin Davis                                     #}
+{#                                                                        #}
+{# This program is free software: you can redistribute it and/or modify   #}
+{# it under the terms of the GNU General Public License as published by   #}
+{# the Free Software Foundation, either version 3 of the License, or      #}
+{# (at your option) any later version.                                    #}
+{#                                                                        #}
+{# This program is distributed in the hope that it will be useful,        #}
+{# but WITHOUT ANY WARRANTY; without even the implied warranty of         #}
+{# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #}
+{# GNU General Public License for more details.                           #}
+{#                                                                        #}
+{# You should have received a copy of the GNU General Public License      #}
+{# along with this program.  If not, see <https://www.gnu.org/licenses/>. #}
+{##########################################################################}
+/** {{block.name}} - UVM register model
+ * Registers:
+{% for offset, reg in block.registers|dictsort %}
+ *    {{ reg.name }} - Offset: {{ offset }}
+{% endfor %}
+ * Sub-Blocks:
+{% for offset, subblock in block.sub_blocks|dictsort %}
+ *    {{ subblock.name }} - Offset: {{ offset }}
+{% endfor %}
+ */
+class block_{{block.name.lower()}} extends uvm_reg_block;
+  `uvm_object_utils(block_{{block.name.lower()}})
+
+  // Registers
+{% for offset, reg in block.registers|dictsort %}
+  {%+ if reg.randomizable() %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
+  reg_{{reg.name.lower()}} {{ reg.name }};
+{% endfor %}
+
+  // Sub-Blocks
+{% for offset, subblock in block.sub_blocks|dictsort %}
+  {%+ if subblock.randomizable() %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
+  block_{{subblock.name.lower()}} {{ subblock.name }};
+{% endfor %}
+
+  function new(string name = "block_{{block.name}}");
+    super.new(name, build_coverage({{block.coverage}}));
+  endfunction
+
+  virtual function void build();
+    this.default_map = create_map("", {{block.base_address}}, {{block.data_size / 8}},
+      {{- ""}} {% if block.endianness.lower() == "little" %}UVM_LITTLE_ENDIAN{% else %}UVM_BIG_ENDIAN{% endif %});
+
+    // Registers
+{% for offset, reg in block.registers|dictsort %}
+    this.{{reg.name}} = reg_{{reg_name_lower()}}::type_id::create("{{reg.name}}",, get_full_name());
+    this.{{reg.name}}.configure(this, null, "");
+    this.{{reg.name}}.build();
+    this.default_map.add_reg(this.{{reg.name}}, {{block.addr_size}}'h{{ "%X" | format(offset)}});
+{% endfor %}
+
+    // Sub-Blocks
+{% for offset, subblock in block.sub_blocks|dictsort %}
+    this.{{ subblock.name }} = block_{{subblock.name.lower()}}::type_id::create("{{subblock.name}}",, get_full_name());
+    this.{{ subblock.name }}.build();
+    this.default_map.add_submap(this.{{ subblock.name }}.default_map, {{block.addr_size}}'h{{ "%X" | format(offset)}});
+{% endfor %}
+  endfunction
+endclass

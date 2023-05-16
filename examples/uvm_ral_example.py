@@ -18,36 +18,56 @@
 
 from __future__ import annotations
 
-from jinja2 import Environment, PackageLoader
+from rtlpy.design.memory import Register
+import rtlpy.build.uvm_ral as ral
 
-from rtlpy.design.memory import Register, AddressBlock
+reg_def = {
+  "name": "control",
+  "fields": [
+    {
+      "name": "mod_en",
+      "size": 1,
+      "lsb_pos": 0,
+      "access": "RW",
+      "reset": 0x0,
+      "volatile": False,
+      "randomizable": False,
+      "reserved": False
+    },
+    {
+      "name": "blink_yellow",
+      "size": 1,
+      "lsb_pos": 1,
+      "access": "RW",
+      "reset": 0x0,
+      "volatile": False,
+      "randomizable": True,
+      "reserved": False
+    },
+    {
+      "name": "blink_red",
+      "size": 1,
+      "lsb_pos": 2,
+      "access": "RW",
+      "reset": 0x0,
+      "volatile": False,
+      "randomizable": True,
+      "reserved": False
+    },
+    {
+      "name": "profile",
+      "size": 1,
+      "lsb_pos": 3,
+      "access": "RW",
+      "reset": 0x0,
+      "volatile": False,
+      "randomizable": True,
+      "reserved": False
+    }
+  ]
+}
 
+reg = Register.from_dict(reg_def)
 
-def addrblock_to_ral(ablock: AddressBlock) -> str:
-  raise NotImplementedError("addrblock_to_ral not implemented")
-
-
-def reg_to_ral(
-      reg: Register,
-      data_size: int = 32,
-      coverage: str = "UVM_NO_COVERAGE"
-    ) -> str:
-  """Convert the provided register to a UVM Register for the RAL
-
-  Args:
-      reg (Register): The register to create the RAL for
-      data_size (int, optional): The register data width. Defaults to 32.
-      coverage (str, optional): The UVM built in coverage. Defaults to "UVM_NO_COVERAGE".
-
-  Returns:
-      str: The string version of the generated RAL
-  """
-  env = Environment(
-    loader=PackageLoader("rtlpy.build", "uvm_templates"),
-    lstrip_blocks=True,
-    trim_blocks=True
-  )
-
-  template = env.get_template("uvm_reg.jinja")
-
-  return template.render(reg=reg, data_size=data_size)
+with open("control_reg.sv", "w") as fout:
+    fout.write(ral.reg_to_ral(reg))

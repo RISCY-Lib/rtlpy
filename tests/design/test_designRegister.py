@@ -32,6 +32,7 @@ def test_defaultRegister():
   assert reg.dimension == 1
   assert len(reg.fields) == 0
   assert reg.coverage == "UVM_NO_COVERAGE"
+  assert not reg.randomizable()
 
 
 def test_simpleRegisterFromDict():
@@ -41,6 +42,7 @@ def test_simpleRegisterFromDict():
   assert reg.dimension == 1
   assert len(reg.fields) == 0
   assert reg.coverage == "UVM_NO_COVERAGE"
+  assert not reg.randomizable()
 
 
 def test_fullRegisterFromDict():
@@ -50,3 +52,4 @@ def test_fullRegisterFromDict():
   assert reg.dimension == 4
   assert len(reg.fields) == 2
   assert reg.coverage == "UVM_FULL_COVERAGE"
+  assert reg.randomizable()

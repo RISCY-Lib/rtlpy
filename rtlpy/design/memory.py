@@ -138,6 +138,18 @@ class Register:
   fields: dict[int, Field] = dataclasses.field(default_factory=dict)
   """A list of the fields in the register bank"""
 
+  def randomizable(self) -> bool:
+    """Determines if the register is randomizable. (Any of the fields are randomizable)
+
+    Returns:
+        bool: True if any field is randomizable, False otherwise
+    """
+    for _, f in self.fields.items():
+      if f.randomizable:
+        return True
+
+    return False
+
   def add_field(self, fld: Field, lsb_pos: Optional[int] = None) -> bool:
     """Adds the field at the given lsb position
 
@@ -180,6 +192,10 @@ class Register:
 
     if not utils.valid_name(self.name):
       _log.error(f"Register ({self.name}) has an invalid name.")
+      ret_val = False
+
+    if self.dimension < 1:
+      _log.error(f"Register ({self.name}) has a dimension less than 1")
       ret_val = False
 
     return ret_val
@@ -229,17 +245,206 @@ class Register:
 @dataclass
 class AddressBlock:
   """An AddressBlock in a MemoryMap which represents a collection of registers"""
-  pass
 
+  name: str
+  """The name of the Address block"""
+  addr_size: int
+  """The number of address bits in the block"""
+  data_size: int
+  """The number of data bits in the block"""
+  base_address: int = 0
+  """The base address for this address block"""
+  dimension: int = 1
+  """The dimension of this AddressBlock (the number of times it repeats in the top block)"""
+  endianness: str = "little"
+  """The endianness of the address space ('little' or 'big')"""
+  coverage: str = "UVM_NO_COVERAGE"
+  """The UVM built-in coverage for the address block"""
+  registers: dict[int, Register] = dataclasses.field(default_factory=dict)
+  """A dict of the Registers in the AddressBlock, indexed by offset"""
+  sub_blocks: dict[int, AddressBlock] = dataclasses.field(default_factory=dict)
+  """A dict of address sub-blocks, indexed by base_address"""
 
-@dataclass
-class MemoryMap:
-  """The top-level MemoryMap of a device/component"""
-  pass
+  def randomizable(self) -> bool:
+    """Determines if the AddressBlock is randomizable. (Any of the registers
+     or sub-blocks are randomizable)
+
+    Returns:
+        bool: True if any register or sub-block is randomizable, False otherwise
+    """
+    for _, r in self.registers.items():
+      if r.randomizable():
+        return True
+
+    for _, b in self.sub_blocks.items():
+      if b.randomizable():
+        return True
+
+    return False
+
+  def size(self) -> int:
+    """Determines the number of bytes which the AddressBlock takes up.
+    Assumes all space is full and block interleaving is not permitted
+
+    Returns:
+        int: The number of bytes in the address block
+    """
+    high_reg_offset = max(self.registers.keys())
+    high_block_offset = max(self.sub_blocks.keys())
+    if high_reg_offset > high_block_offset:
+      return int(high_reg_offset + (self.registers[high_reg_offset].dimension *
+                                    self.data_size / 8))
+    else:
+      return int(high_block_offset + (self.sub_blocks[high_block_offset].dimension *
+                                      self.sub_blocks[high_block_offset].size()))
+
+  def valid(self) -> bool:
+    """Checks the AddressBlock is validly defined
+
+    Raises:
+        bool: Returns true if the Field is valid. False otherwise
+    """
+    ret_val = True
+
+    if not utils.valid_name(self.name):
+      _log.error(f"AddressBlock ({self.name}) has an invalid name.")
+      ret_val = False
+
+    if self.base_address < 1:
+      _log.error(f"AddressBlock ({self.name}) has a base address less than 0")
+      ret_val = False
+
+    if self.dimension < 1:
+      _log.error(f"AddressBlock ({self.name}) has a dimension less than 1")
+      ret_val = False
+
+    if self.endianness.lower() not in ['little', 'big']:
+      _log.error(f"AddressBlock ({self.name}) has invalid endianness ({self.endianness})")
+      ret_val = False
+
+    return ret_val
+
+  def _find_address_space(self, size: int, word_aligned: bool = True) -> int:
+    """Finds the first block of address space which has at-least a given number of contiguous
+    free bytes.
+
+    Args:
+        size (int): The number of bytes the block must have
+        word_aligned (bool): If the block must be word aligned (based on the data_size).
+          Defaults to True.
+
+    Returns:
+        int: The offset of the first block of address space which fits the data.
+    """
+    raise NotImplementedError("AddressBlock._find_address_space not yet implemented")
+
+  def _check_address_space(self, size: int, offset: int) -> bool:
+    return False
+
+  def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
+    """Adds the register at the given offset.
+    If the offset is None, then add at first valid position
+
+    Args:
+        reg (Register): The register to add
+        offset (Optional[int], optional): The offset of the register. Defaults to None.
+          When None, the field is inserted at the first valid offset position
+
+    Returns:
+        bool: True if the register was successfully added
+    """
+    if offset is None:
+      offset = self._find_address_space(int(self.data_size / 8))
+      self.registers[offset] = reg
+      return True
+    elif self._check_address_space(int(self.data_size / 8), offset):
+      raise NotImplementedError()
+      return True
+
+    return False
+
+  def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+    """Adds the sub-block at the given offset.
+    If the offset is None, then add at first valid position
+
+    Args:
+        blk (AddressBlock): The sub-block to add
+        offset (Optional[int], optional): The offset of the sub-block. Defaults to None.
+          When None, the field is inserted at the first valid offset position
+
+    Returns:
+        bool: True if the register was successfully added
+    """
+
+    if offset is None:
+      offset = self._find_address_space(blk.size())
+      self.sub_blocks[offset] = blk
+      return True
+    elif self._check_address_space(blk.size(), offset):
+      raise NotImplementedError()
+      return True
+
+    return False
+
+  @staticmethod
+  def from_dict(definition: dict) -> AddressBlock:
+    """Converts the dictionary definition into a Register object.
+    Requires the following keys: [name, addr_size, data_size]
+    Accepts the optional keys:
+      [base_address, dimension, endianness, coverage, registers, sub_blocks]
+
+    Args:
+        definition (dict): The definition of the Register in dictionary form
+
+    Raises:
+        MissingDefinitionException: Raised when a required key is missing from the definition
+
+    Returns:
+        AddressBlock: The address block derived from the definition
+    """
+    required_keys = ['name', 'addr_size', 'data_size']
+    inherited_keys = ['addr_size', 'data_size', 'base_address', 'endianness', 'coverage']
+
+    for req_key in required_keys:
+      if req_key not in definition:
+        err = f"Missing {req_key} key from dict during AddressBlock conversion"
+        _log.error(err)
+        raise MissingDefinitionException(err)
+
+    blk = AddressBlock(definition['name'], definition['addr_size'], definition['data_size'])
+
+    if 'base_address' in definition:
+      blk.dimension = definition['base_address']
+
+    if 'dimension' in definition:
+      blk.dimension = definition['dimension']
+
+    if 'endianness' in definition:
+      blk.coverage = definition['endianness']
+
+    if 'coverage' in definition:
+      blk.coverage = definition['coverage']
+
+    if 'registers' in definition:
+      for reg in definition['registers']:
+        offset = None if "lsb_pos" not in reg else reg['lsb_pos']
+
+        blk.add_register(Register.from_dict(reg), offset)
+
+    if 'sub_blocks' in definition:
+      for subblk in definition['sub_blocks']:
+        for k in inherited_keys:
+          if k not in subblk and k in definition:
+            subblk[k] = definition[k]
+        blk.add_subblock(AddressBlock.from_dict(subblk))
+
+    blk.valid()
+
+    return blk
 
 
 ##########################################################################
 # From Dict Methods
 ##########################################################################
-def memory_from_dict(definition: dict) -> Field | Register | AddressBlock | MemoryMap:
+def memory_from_dict(definition: dict) -> Field | Register | AddressBlock:
   raise NotImplementedError("memory_from_dict not implemented")

@@ -110,6 +110,36 @@ class AccessType (Enum):
         return access
     raise KeyError(label)
 
+  @classmethod
+  def is_readable(cls, access: AccessType) -> bool:
+    """Returns true if the access type is considered "readable".
+    An access type is considered "readable" iff a read transaction does not result in an error
+
+    Args:
+        access (AccessType): The access type to check
+
+    Returns:
+        bool: True if readable, else false
+    """
+    if access in [cls.WRITE_ONLY, cls.WRITE_ONLY_CLEARS, cls.WRITE_ONLY_SETS, cls.WRITE_ONLY_ONE]:
+      return False
+    return True
+
+  @classmethod
+  def is_writable(cls, access: AccessType) -> bool:
+    """Returns true if the access type is considered "writable".
+    An access type is considered "writable" iff a write transaction has an impact on state
+
+    Args:
+        accces (AccessType): The access type to check
+
+    Returns:
+        bool: True if writable, else False
+    """
+    if access in [cls.READ_ONLY, cls.READ_CLEARS, cls.READ_SETS]:
+      return False
+    return True
+
 
 class PortDirection(Enum):
   """Type to represent Port Direction Types"""
