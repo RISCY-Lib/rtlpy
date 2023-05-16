@@ -25,7 +25,7 @@ TRAFFIC_LIGHT_FULL_DEF = {
   "sub_blocks": [
     {
       "name": "setup",
-      "base_address": 0,
+      "base_address": 16,
       "registers": [
         {
           "name": "control",

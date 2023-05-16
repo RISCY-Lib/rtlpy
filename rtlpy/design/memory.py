@@ -289,8 +289,9 @@ class AddressBlock:
     Returns:
         int: The number of bytes in the address block
     """
-    high_reg_offset = max(self.registers.keys())
-    high_block_offset = max(self.sub_blocks.keys())
+
+    high_reg_offset = 0 if len(self.registers) == 0 else max(self.registers.keys())
+    high_block_offset = 0 if len(self.sub_blocks) == 0 else max(self.sub_blocks.keys())
     if high_reg_offset > high_block_offset:
       return int(high_reg_offset + (self.registers[high_reg_offset].dimension *
                                     self.data_size / 8))
@@ -336,10 +337,53 @@ class AddressBlock:
     Returns:
         int: The offset of the first block of address space which fits the data.
     """
-    raise NotImplementedError("AddressBlock._find_address_space not yet implemented")
+    addr_space: dict[int, Register | AddressBlock] = {}
+    for offset, reg in self.registers.items():
+      addr_space[offset] = reg
+    for offset, blk in self.sub_blocks.items():
+      addr_space[offset] = blk
+
+    last_offset = 0
+    for offset in sorted(addr_space.keys()):
+      if last_offset + size <= offset:
+        return last_offset
+
+      mem_obj = addr_space[offset]
+      if isinstance(addr_space[offset], Register):
+
+        last_offset = offset + int(self.data_size / 8)
+      elif isinstance(mem_obj, AddressBlock):
+        last_offset = offset + mem_obj.size()
+
+    return last_offset
 
   def _check_address_space(self, size: int, offset: int) -> bool:
-    return False
+    """Checks the given offset in the address space has free space greater than
+    or equal to the size provided.
+
+    Args:
+        size (int): The size of the address space to check
+        offset (int): The offset in the address space to check
+
+    Returns:
+        bool: True if the address space is free, False otherwise
+    """
+    start_addr = offset
+    end_addr = offset + size
+
+    # First check the registers for overlap
+    for reg_addr in self.registers.keys():
+      if len([addr for addr in range(reg_addr, reg_addr + int(self.data_size / 8))
+              if addr in range(start_addr, end_addr)]):
+        return False
+
+    # Then check the sub-blocks for overlap
+    for blk_addr, blk in self.sub_blocks.items():
+      if len([addr for addr in range(blk_addr, blk_addr + blk.size())
+              if addr in range(start_addr, end_addr)]):
+        return False
+
+    return True
 
   def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
     """Adds the register at the given offset.
@@ -358,7 +402,7 @@ class AddressBlock:
       self.registers[offset] = reg
       return True
     elif self._check_address_space(int(self.data_size / 8), offset):
-      raise NotImplementedError()
+      self.registers[offset] = reg
       return True
 
     return False
@@ -381,7 +425,7 @@ class AddressBlock:
       self.sub_blocks[offset] = blk
       return True
     elif self._check_address_space(blk.size(), offset):
-      raise NotImplementedError()
+      self.sub_blocks[offset] = blk
       return True
 
     return False
@@ -403,7 +447,7 @@ class AddressBlock:
         AddressBlock: The address block derived from the definition
     """
     required_keys = ['name', 'addr_size', 'data_size']
-    inherited_keys = ['addr_size', 'data_size', 'base_address', 'endianness', 'coverage']
+    inherited_keys = ['addr_size', 'data_size', 'endianness', 'coverage']
 
     for req_key in required_keys:
       if req_key not in definition:
@@ -414,7 +458,7 @@ class AddressBlock:
     blk = AddressBlock(definition['name'], definition['addr_size'], definition['data_size'])
 
     if 'base_address' in definition:
-      blk.dimension = definition['base_address']
+      blk.base_address = definition['base_address']
 
     if 'dimension' in definition:
       blk.dimension = definition['dimension']
@@ -427,7 +471,7 @@ class AddressBlock:
 
     if 'registers' in definition:
       for reg in definition['registers']:
-        offset = None if "lsb_pos" not in reg else reg['lsb_pos']
+        offset = None if "offset" not in reg else reg['offset']
 
         blk.add_register(Register.from_dict(reg), offset)
 
@@ -436,7 +480,9 @@ class AddressBlock:
         for k in inherited_keys:
           if k not in subblk and k in definition:
             subblk[k] = definition[k]
-        blk.add_subblock(AddressBlock.from_dict(subblk))
+
+        offset = None if "base_address" not in subblk else subblk["base_address"]
+        blk.add_subblock(AddressBlock.from_dict(subblk), offset)
 
     blk.valid()
 

@@ -56,12 +56,12 @@ def test_singleSubBlockAddressBlockFromDict():
 def test_multipleRegisterAddressBlockFromDict():
   blk = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
-  blk = blk.sub_blocks[0]
+  blk = blk.sub_blocks[16]
 
   assert blk.name == "setup"
   assert blk.addr_size == 6
   assert blk.data_size == 8
-  assert blk.base_address == 0
+  assert blk.base_address == 16
   assert blk.dimension == 1
   assert blk.endianness == "little"
   assert blk.coverage == test_defs.TRAFFIC_LIGHT_FULL_DEF["coverage"]
