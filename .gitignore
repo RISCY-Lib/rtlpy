@@ -1,5 +1,10 @@
 # Project Specific Ignores
 
+examples/*.vh
+examples/*.v
+examples/*.svh
+examples/*.sv
+
 ########################################################
 # Python Ignores
 ########################################################
