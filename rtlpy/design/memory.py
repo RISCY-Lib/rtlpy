@@ -18,7 +18,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, TypeVar, Type
 
 import logging
 
@@ -40,6 +40,12 @@ _log.addHandler(logging.NullHandler())
 class MissingDefinitionException (Exception):
   """The Exception raised when converting using a dictionary that is missing a required field"""
   pass
+
+
+##########################################################################
+# TypeVar Definitions
+##########################################################################
+AddrBlockT = TypeVar('AddrBlockT', bound='AddressBlock')
 
 
 ##########################################################################
@@ -319,7 +325,7 @@ class AddressBlock:
       _log.error(f"AddressBlock ({self.name}) has an invalid name.")
       ret_val = False
 
-    if self.base_address < 1:
+    if self.base_address < 0:
       _log.error(f"AddressBlock ({self.name}) has a base address less than 0")
       ret_val = False
 
@@ -422,10 +428,10 @@ class AddressBlock:
     Args:
         blk (AddressBlock): The sub-block to add
         offset (Optional[int], optional): The offset of the sub-block. Defaults to None.
-            When None, the field is inserted at the first valid offset position
+            When None, the sub-block is inserted at the first valid offset position
 
     Returns:
-        bool: True if the register was successfully added
+        bool: True if the sub-block was successfully added
     """
 
     if offset is None:
@@ -438,9 +444,9 @@ class AddressBlock:
 
     return False
 
-  @staticmethod
-  def from_dict(definition: dict) -> AddressBlock:
-    """Converts the dictionary definition into a Register object.
+  @classmethod
+  def from_dict(cls: Type[AddrBlockT], definition: dict) -> AddrBlockT:
+    """Converts the dictionary definition into an AddressBlock object.
     Requires the following keys: [name, addr_size, data_size]
     Accepts the optional keys:
     [base_address, dimension, endianness, coverage, registers, sub_blocks]
@@ -455,7 +461,6 @@ class AddressBlock:
         AddressBlock: The address block derived from the definition
     """
     required_keys = ['name', 'addr_size', 'data_size']
-    inherited_keys = ['addr_size', 'data_size', 'endianness', 'coverage']
 
     for req_key in required_keys:
       if req_key not in definition:
@@ -463,7 +468,7 @@ class AddressBlock:
         _log.error(err)
         raise MissingDefinitionException(err)
 
-    blk = AddressBlock(definition['name'], definition['addr_size'], definition['data_size'])
+    blk = cls(definition['name'], definition['addr_size'], definition['data_size'])
 
     if 'base_address' in definition:
       blk.base_address = definition['base_address']
@@ -487,17 +492,89 @@ class AddressBlock:
         blk.add_register(Register.from_dict(reg), offset)
 
     if 'sub_blocks' in definition:
-      for subblk in definition['sub_blocks']:
-        for k in inherited_keys:
-          if k not in subblk and k in definition:
-            subblk[k] = definition[k]
-
-        offset = None if "base_address" not in subblk else subblk["base_address"]
-        blk.add_subblock(AddressBlock.from_dict(subblk), offset)
+      cls._sub_blocks_from_dict(definition, blk)
 
     blk.valid()
 
     return blk
+
+  @classmethod
+  def _sub_blocks_from_dict(cls, definition: dict, blk: AddressBlock) -> None:
+    """Performs the sub-block parsing from a dictionary definition
+
+    Args:
+        definition (dict): _description_
+        blk (AddressBlock): _description_
+    """
+    inherited_keys = ['addr_size', 'data_size', 'endianness', 'coverage']
+
+    for subblk in definition['sub_blocks']:
+      for k in inherited_keys:
+        if k not in subblk and k in definition:
+          subblk[k] = definition[k]
+
+      offset = None if "base_address" not in subblk else subblk["base_address"]
+      blk.add_subblock(AddressBlock.from_dict(subblk), offset)
+
+
+
+class PagedAddressBlock(AddressBlock):
+  """An address block, where all the sub-blocks are paged so they start with a zero
+  offset, but can only be accessed through a 'page' register which sets the page index."""
+
+  def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+    """Adds the sub-block at the given offset.
+    If the offset is None, then add at first valid position
+
+    Args:
+        blk (AddressBlock): The sub-block to add
+        offset (Optional[int], optional): The page offset of the sub-block. Defaults to None.
+            When None, the sub-block is inserted at the first valid page position
+
+    Returns:
+        bool: True if the sub-block was successfully added
+    """
+
+    if offset is None:
+      for i in range(0, 2**(self.data_size)):
+        if i not in self.sub_blocks:
+          self.sub_blocks[i] = blk
+          return True
+      _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
+                   f" Maximum number of pages ({2**self.data_size}) reached.")
+      return False
+
+    if not self._check_address_space(blk.size(), 0):
+      _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
+                   f" {blk.name} overlaps with existing registers.")
+      return False
+
+    if not offset not in self.sub_blocks:
+      _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
+                   f" {blk.name} overlaps with existing sub-block.")
+      return False
+
+    self.sub_blocks[offset] = blk
+    return True
+
+  @classmethod
+  def _sub_blocks_from_dict(cls, definition: dict, blk: AddressBlock) -> None:
+    """Performs the sub-block parsing from a dictionary definition for the parent class
+    'from_dict' method.
+
+    Args:
+        definition (dict): The definition to derive from
+        blk (AddressBlock): The parent block to add too
+    """
+    inherited_keys = ['addr_size', 'data_size', 'endianness', 'coverage', 'base_address']
+
+    for subblk in definition['sub_blocks']:
+      for k in inherited_keys:
+        if k not in subblk and k in definition:
+          subblk[k] = definition[k]
+
+      offset = None if "page" not in subblk else subblk["page"]
+      blk.add_subblock(AddressBlock.from_dict(subblk), offset)
 
 
 ##########################################################################
