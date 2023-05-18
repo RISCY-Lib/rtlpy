@@ -49,6 +49,12 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     this.default_map = create_map("", {{block.base_address}}, {{"%d" | format(block.data_bytes())}},
       {{- ""}} {% if block.endianness.lower() == "little" %}UVM_LITTLE_ENDIAN{% else %}UVM_BIG_ENDIAN{% endif %});
 
+    // Page Register
+    this.{{block.page_reg.name}} = {{block.page_reg.name.lower()}}_reg::type_id::create("{{block.page_reg.name}}",, get_full_name());
+    this.{{block.page_reg.name}}.configure(this, null, "");
+    this.{{block.page_reg.name}}.build();
+    this.default_map.add_reg(this.{{block.page_reg.name}}, {{block.addr_size}}'h{{ "%X" | format(block.page_reg_offset)}});
+
     // Registers
 {% for offset, reg in block.registers|dictsort %}
   {% if reg.dimension == 1 %}
@@ -69,7 +75,8 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
 {% for offset, subblock in block.sub_blocks|dictsort %}
     this.{{ subblock.name }} = {{subblock.name.lower()}}_block::type_id::create("{{subblock.name}}",, get_full_name());
     this.{{ subblock.name }}.build();
-    this.default_map.add_submap(this.{{ subblock.name }}.default_map, {{block.addr_size}}'h{{ "%X" | format(offset)}});
 {% endfor %}
+
+  {# TODO: Add default mapping #}
   endfunction
 endclass

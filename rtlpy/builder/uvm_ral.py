@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, Benjamin Davis                                     #
+# Copyright (C) 2022, RISC-Lib Contributors                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from jinja2 import Environment, PackageLoader
 
-from rtlpy.design.memory import Register, AddressBlock
+from rtlpy.design.memory import Register, AddressBlock, PagedAddressBlock
 
 
 def addrblock_to_ral(ablock: AddressBlock) -> str:
@@ -46,7 +46,12 @@ def addrblock_to_ral(ablock: AddressBlock) -> str:
   for _, subblk in ablock.sub_blocks.items():
     ral_str += addrblock_to_ral(subblk) + "\n\n"
 
-  template = env.get_template("uvm_reg_block.jinja")
+  if isinstance(ablock, AddressBlock):
+    template = env.get_template("uvm_reg_block.jinja")
+  elif isinstance(ablock, PagedAddressBlock):
+    template = env.get_template("uvm_reg_block_paged.jinja")
+  else:
+    raise TypeError(f"addrblock_to_ral cannot handle an address block of type: {type(ablock)}")
 
   ral_str += template.render(block=ablock)
 

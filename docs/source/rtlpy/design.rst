@@ -6,8 +6,10 @@ rtlpy.design Pacakge
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
 
 .. automodule:: rtlpy.design.memory
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:

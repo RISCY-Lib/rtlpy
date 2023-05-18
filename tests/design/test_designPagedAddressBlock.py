@@ -15,18 +15,18 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-"""Module to test the rtlpy.design.AddressBlock class
+"""Module to test the rtlpy.design.PagedAddressBlock class
 """
 
 
-from rtlpy.design import AddressBlock
+from rtlpy.design import PagedAddressBlock
 
 
 import tests._definitions.memory_map_definitions as test_defs
 
 
-def test_defaultAddressBlock():
-  blk = AddressBlock(name="test_name", addr_size=32, data_size=32)
+def test_defaultPagedAddressBlock():
+  blk = PagedAddressBlock(name="test_name", addr_size=32, data_size=32)
 
   assert blk.name == "test_name"
   assert blk.addr_size == 32
@@ -39,8 +39,8 @@ def test_defaultAddressBlock():
   assert len(blk.sub_blocks) == 0
 
 
-def test_singleSubBlockAddressBlockFromDict():
-  blk = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+def test_singleSubBlockPagedAddressBlockFromDict():
+  blk = PagedAddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
   assert blk.name == test_defs.TRAFFIC_LIGHT_FULL_DEF["name"]
   assert blk.addr_size == 6
@@ -53,10 +53,10 @@ def test_singleSubBlockAddressBlockFromDict():
   assert len(blk.sub_blocks) == 1
 
 
-def test_multipleRegisterAddressBlockFromDict():
-  blk = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+def test_multipleRegisterPagedAddressBlockFromDict():
+  blk = PagedAddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
-  blk = blk.sub_blocks[16]
+  blk = blk.sub_blocks[0]
 
   assert blk.name == "setup"
   assert blk.addr_size == 6

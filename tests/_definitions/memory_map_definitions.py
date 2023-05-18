@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2023, Benjamin Davis                                     #
+# Copyright (C) 2023, RISC-Lib Contributors                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -123,7 +123,20 @@ TRAFFIC_LIGHT_FULL_DEF = {
         }
       ]
     }
-  ]
+  ],
+  "page_reg": {
+    "name": "page_reg",
+    "offset": 0x3F,
+    "fields": [
+      {
+        "name": "page",
+        "size": 8,
+        "lsb_pos": 0,
+        "access": "RW",
+        "reset": 0x0
+      }
+    ]
+  }
 }
 
 TRAFFIC_LIGHT_RAL_STR = """/** control - UVM register model

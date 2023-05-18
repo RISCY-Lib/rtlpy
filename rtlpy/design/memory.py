@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, Benjamin Davis                                     #
+# Copyright (C) 2022, RISC-Lib Contributors                                     #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -19,6 +19,8 @@
 from __future__ import annotations
 
 from typing import Optional, TypeVar, Type
+
+from abc import ABC, abstractmethod
 
 import logging
 
@@ -45,7 +47,7 @@ class MissingDefinitionException (Exception):
 ##########################################################################
 # TypeVar Definitions
 ##########################################################################
-AddrBlockT = TypeVar('AddrBlockT', bound='AddressBlock')
+AddrBlockT = TypeVar('AddrBlockT', bound='_AddressBlockBase')
 
 
 ##########################################################################
@@ -249,8 +251,8 @@ class Register:
 
 
 @dataclass
-class AddressBlock:
-  """An AddressBlock in a MemoryMap which represents a collection of registers"""
+class _AddressBlockBase(ABC):
+  """Abstract Base for implementation details which are shared between address blocks"""
 
   name: str
   """The name of the Address block"""
@@ -296,6 +298,7 @@ class AddressBlock:
     """
     return int(self.data_size / 8)
 
+  @abstractmethod
   def size(self) -> int:
     """Determines the number of bytes which the AddressBlock takes up.
     Assumes all space is full and block interleaving is not permitted
@@ -303,15 +306,7 @@ class AddressBlock:
     Returns:
         int: The number of bytes in the address block
     """
-
-    high_reg_offset = 0 if len(self.registers) == 0 else max(self.registers.keys())
-    high_block_offset = 0 if len(self.sub_blocks) == 0 else max(self.sub_blocks.keys())
-    if high_reg_offset > high_block_offset:
-      return int(high_reg_offset + (self.registers[high_reg_offset].dimension *
-                                    self.data_size / 8))
-    else:
-      return int(high_block_offset + (self.sub_blocks[high_block_offset].dimension *
-                                      self.sub_blocks[high_block_offset].size()))
+    pass
 
   def valid(self) -> bool:
     """Checks the AddressBlock is validly defined
@@ -324,6 +319,136 @@ class AddressBlock:
     if not utils.valid_name(self.name):
       _log.error(f"AddressBlock ({self.name}) has an invalid name.")
       ret_val = False
+
+    return ret_val
+
+  @abstractmethod
+  def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
+    """Adds the register at the given offset.
+    If the offset is None, then add at first valid position
+
+    Args:
+        reg (Register): The register to add
+        offset (int, optional): The offset of the register. Defaults to None.
+            When None, the field is inserted at the first valid offset position
+
+    Returns:
+        bool: True if the register was successfully added
+    """
+    pass
+
+  @abstractmethod
+  def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+    """Adds the sub-block at the given offset.
+    If the offset is None, then add at first valid position
+
+    Args:
+        blk (AddressBlock): The sub-block to add
+        offset (Optional[int], optional): The offset of the sub-block. Defaults to None.
+            When None, the sub-block is inserted at the first valid offset position
+
+    Returns:
+        bool: True if the sub-block was successfully added
+    """
+    pass
+
+  @classmethod
+  def _check_required_dict_keys(cls, definition: dict) -> None:
+    required_keys = ['name', 'addr_size', 'data_size']
+
+    for req_key in required_keys:
+      if req_key not in definition:
+        err = f"Missing {req_key} key from dict during {type(cls)} conversion"
+        _log.error(err)
+        raise MissingDefinitionException(err)
+
+  @classmethod
+  def _set_optional_dict_keys(cls, definition: dict, blk: _AddressBlockBase) -> None:
+    if 'base_address' in definition:
+      blk.base_address = definition['base_address']
+
+    if 'dimension' in definition:
+      blk.dimension = definition['dimension']
+
+    if 'endianness' in definition:
+      blk.coverage = definition['endianness']
+
+    if 'coverage' in definition:
+      blk.coverage = definition['coverage']
+
+  @classmethod
+  @abstractmethod
+  def _registers_from_dict(cls, definition: dict, blk: _AddressBlockBase) -> None:
+    """Performs the register parsing from a dictionary definition for the parent class
+    'from_dict' method.
+
+    Args:
+        definition (dict): The definition to derive from
+        blk (AddressBlock): The parent block to add too
+    """
+    pass
+
+  @classmethod
+  @abstractmethod
+  def _sub_blocks_from_dict(cls, definition: dict, blk: _AddressBlockBase) -> None:
+    """Performs the sub-block parsing from a dictionary definition for the parent class
+    'from_dict' method.
+
+    Args:
+        definition (dict): The definition to derive from
+        blk (AddressBlock): The parent block to add too
+    """
+    pass
+
+  @classmethod
+  def from_dict(cls: Type[AddrBlockT], definition: dict) -> AddrBlockT:
+    """Converts the dictionary definition into an AddressBlock object.
+    Requires the following keys: [name, addr_size, data_size]
+    Accepts the optional keys:
+    [base_address, dimension, endianness, coverage, registers, sub_blocks]
+
+    Args:
+        definition (dict): The definition of the Register in dictionary form
+
+    Raises:
+        MissingDefinitionException: Raised when a required key is missing from the definition
+
+    Returns:
+        AddressBlock: The address block derived from the definition
+    """
+    cls._check_required_dict_keys(definition)
+
+    blk = cls(definition['name'], definition['addr_size'], definition['data_size'])
+
+    cls._set_optional_dict_keys(definition, blk)
+
+    if 'registers' in definition:
+      cls._registers_from_dict(definition, blk)
+
+    if 'sub_blocks' in definition:
+      cls._sub_blocks_from_dict(definition, blk)
+
+    blk.valid()
+
+    return blk
+
+
+@dataclass
+class AddressBlock(_AddressBlockBase):
+  """An AddressBlock in a MemoryMap which represents a collection of registers"""
+
+  def size(self) -> int:
+    high_reg_offset = 0 if len(self.registers) == 0 else max(self.registers.keys())
+    high_block_offset = 0 if len(self.sub_blocks) == 0 else max(self.sub_blocks.keys())
+    if high_reg_offset > high_block_offset:
+      return int(high_reg_offset + (self.registers[high_reg_offset].dimension *
+                                    self.data_size / 8))
+    else:
+      return int(high_block_offset + (self.sub_blocks[high_block_offset].dimension *
+                                      self.sub_blocks[high_block_offset].size()))
+
+  def valid(self) -> bool:
+    ret_val = super().valid()
 
     if self.base_address < 0:
       _log.error(f"AddressBlock ({self.name}) has a base address less than 0")
@@ -400,17 +525,6 @@ class AddressBlock:
     return True
 
   def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
-    """Adds the register at the given offset.
-    If the offset is None, then add at first valid position
-
-    Args:
-        reg (Register): The register to add
-        offset (int, optional): The offset of the register. Defaults to None.
-            When None, the field is inserted at the first valid offset position
-
-    Returns:
-        bool: True if the register was successfully added
-    """
     if offset is None:
       offset = self._find_address_space(int(self.data_size / 8))
       self.registers[offset] = reg
@@ -422,18 +536,6 @@ class AddressBlock:
     return False
 
   def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
-    """Adds the sub-block at the given offset.
-    If the offset is None, then add at first valid position
-
-    Args:
-        blk (AddressBlock): The sub-block to add
-        offset (Optional[int], optional): The offset of the sub-block. Defaults to None.
-            When None, the sub-block is inserted at the first valid offset position
-
-    Returns:
-        bool: True if the sub-block was successfully added
-    """
-
     if offset is None:
       offset = self._find_address_space(blk.size())
       self.sub_blocks[offset] = blk
@@ -445,67 +547,7 @@ class AddressBlock:
     return False
 
   @classmethod
-  def from_dict(cls: Type[AddrBlockT], definition: dict) -> AddrBlockT:
-    """Converts the dictionary definition into an AddressBlock object.
-    Requires the following keys: [name, addr_size, data_size]
-    Accepts the optional keys:
-    [base_address, dimension, endianness, coverage, registers, sub_blocks]
-
-    Args:
-        definition (dict): The definition of the Register in dictionary form
-
-    Raises:
-        MissingDefinitionException: Raised when a required key is missing from the definition
-
-    Returns:
-        AddressBlock: The address block derived from the definition
-    """
-    required_keys = ['name', 'addr_size', 'data_size']
-
-    for req_key in required_keys:
-      if req_key not in definition:
-        err = f"Missing {req_key} key from dict during AddressBlock conversion"
-        _log.error(err)
-        raise MissingDefinitionException(err)
-
-    blk = cls(definition['name'], definition['addr_size'], definition['data_size'])
-
-    if 'base_address' in definition:
-      blk.base_address = definition['base_address']
-
-    if 'dimension' in definition:
-      blk.dimension = definition['dimension']
-
-    if 'endianness' in definition:
-      blk.coverage = definition['endianness']
-
-    if 'coverage' in definition:
-      blk.coverage = definition['coverage']
-
-    if 'registers' in definition:
-      for reg in definition['registers']:
-        offset = None if "offset" not in reg else reg['offset']
-
-        if "coverage" not in reg and "coverage" in definition:
-          reg["coverage"] = definition["coverage"]
-
-        blk.add_register(Register.from_dict(reg), offset)
-
-    if 'sub_blocks' in definition:
-      cls._sub_blocks_from_dict(definition, blk)
-
-    blk.valid()
-
-    return blk
-
-  @classmethod
-  def _sub_blocks_from_dict(cls, definition: dict, blk: AddressBlock) -> None:
-    """Performs the sub-block parsing from a dictionary definition
-
-    Args:
-        definition (dict): _description_
-        blk (AddressBlock): _description_
-    """
+  def _sub_blocks_from_dict(cls, definition: dict, blk: _AddressBlockBase) -> None:
     inherited_keys = ['addr_size', 'data_size', 'endianness', 'coverage']
 
     for subblk in definition['sub_blocks']:
@@ -516,25 +558,39 @@ class AddressBlock:
       offset = None if "base_address" not in subblk else subblk["base_address"]
       blk.add_subblock(AddressBlock.from_dict(subblk), offset)
 
+  @classmethod
+  def _registers_from_dict(cls, definition: dict, blk: _AddressBlockBase) -> None:
+    for reg in definition['registers']:
+        offset = None if "offset" not in reg else reg['offset']
+
+        if "coverage" not in reg and "coverage" in definition:
+          reg["coverage"] = definition["coverage"]
+
+        blk.add_register(Register.from_dict(reg), offset)
 
 
-class PagedAddressBlock(AddressBlock):
+class PagedAddressBlock(_AddressBlockBase):
   """An address block, where all the sub-blocks are paged so they start with a zero
   offset, but can only be accessed through a 'page' register which sets the page index."""
 
+  page_reg: Register | None = None
+  """The reference to the register used as the page_reg"""
+  page_reg_offset: int = -1
+  """The page register offset in the register bank"""
+
+  def size(self) -> int:
+    high_bytes = []
+    for offset, reg in self.registers.items():
+      high_bytes.append(offset + (reg.dimension * self.data_bytes()))
+    for _, blk in self.sub_blocks.items():
+      high_bytes.append(blk.base_address + blk.size())
+
+    return max(high_bytes)
+
+  def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
+    raise NotImplementedError()
+
   def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
-    """Adds the sub-block at the given offset.
-    If the offset is None, then add at first valid position
-
-    Args:
-        blk (AddressBlock): The sub-block to add
-        offset (Optional[int], optional): The page offset of the sub-block. Defaults to None.
-            When None, the sub-block is inserted at the first valid page position
-
-    Returns:
-        bool: True if the sub-block was successfully added
-    """
-
     if offset is None:
       for i in range(0, 2**(self.data_size)):
         if i not in self.sub_blocks:
@@ -558,14 +614,38 @@ class PagedAddressBlock(AddressBlock):
     return True
 
   @classmethod
-  def _sub_blocks_from_dict(cls, definition: dict, blk: AddressBlock) -> None:
-    """Performs the sub-block parsing from a dictionary definition for the parent class
-    'from_dict' method.
+  def from_dict(cls, definition: dict) -> PagedAddressBlock:
+    # TODO: Move required keys checking
+    required_keys = ['name', 'addr_size', 'data_size', 'page_reg']
 
-    Args:
-        definition (dict): The definition to derive from
-        blk (AddressBlock): The parent block to add too
-    """
+    for req_key in required_keys:
+      if req_key not in definition:
+        err = f"Missing {req_key} key from dict during AddressBlock conversion"
+        _log.error(err)
+        raise MissingDefinitionException(err)
+
+    blk = super(PagedAddressBlock, cls).from_dict(definition)
+
+    if "offset" not in definition['page_reg']:
+      err = f"Missing required offset of page reg during {type(cls)} conversion"
+      _log.error(err)
+      raise MissingDefinitionException(err)
+
+    blk.page_reg_offset = definition['page_reg']['offset']
+
+    if "coverage" not in definition['page_reg'] and "coverage" in definition:
+      definition['page_reg']["coverage"] = definition["coverage"]
+
+    blk.page_reg = Register.from_dict(definition['page_reg'])
+
+    return blk
+
+  @classmethod
+  def _registers_from_dict(cls, definition: dict, blk: _AddressBlockBase) -> None:
+    raise NotImplementedError()
+
+  @classmethod
+  def _sub_blocks_from_dict(cls, definition: dict, blk: _AddressBlockBase) -> None:
     inherited_keys = ['addr_size', 'data_size', 'endianness', 'coverage', 'base_address']
 
     for subblk in definition['sub_blocks']:
