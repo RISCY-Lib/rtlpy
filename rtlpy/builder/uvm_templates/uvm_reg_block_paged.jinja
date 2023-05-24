@@ -28,6 +28,9 @@
 class {{block.name.lower()}}_block extends uvm_reg_block;
   `uvm_object_utils({{block.name.lower()}}_block)
 
+  // Helper Members
+  uvm_reg_block current_page;
+
   // Registers
 {% for offset, reg in block.registers|dictsort %}
   {%+ if reg.randomizable() %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
@@ -77,6 +80,34 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     this.{{ subblock.name }}.build();
 {% endfor %}
 
-  {# TODO: Add default mapping #}
+    // Add default Sub-Block
+    this.current_page = this.{{block.sub_blocks[block.page_reg.fields[0].reset].name}};
+    this.default_map.add_submap(this.current_page.default_map, {{block.sub_blocks[block.page_reg.fields[0].reset].base_address}});
+
+    lock_model();
   endfunction
+
+
+{% for offset, subblock in block.sub_blocks|dictsort %}
+  {% if subblock.dimension == 1 %}
+  task page_{{subblock.name.lower()}}();
+  {% else %}
+  task page_{{subblock.name.lower()}}(int idx);
+  {%endif %}
+    unlock_model();
+    this.default_map.unregister(this.current_page.default_map);
+
+  {% if subblock.dimension == 1 %}
+    this.current_page = this.{{subblock.name}};
+    this.default_map.add_submap(this.current_page.default_map, {{subblock.base_address}});
+    this.{{block.page_reg.name}}.write({{offset}});
+  {% else %}
+    this.current_page = this.{{subblock.name}}[idx];
+    this.default_map.add_submap(this.current_page.default_map, {{subblock.base_address}});
+    this.{{block.page_reg.name}}.write({{offset}} + (idx * {{block.size()}}));
+  {%endif %}
+
+    lock_model();
+  endtask{{"\n"}}
+{% endfor %}
 endclass

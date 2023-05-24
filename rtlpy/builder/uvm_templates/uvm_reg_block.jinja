@@ -71,5 +71,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     this.{{ subblock.name }}.build();
     this.default_map.add_submap(this.{{ subblock.name }}.default_map, {{block.addr_size}}'h{{ "%X" | format(offset)}});
 {% endfor %}
+
+    lock_model();
   endfunction
 endclass

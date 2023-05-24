@@ -269,6 +269,8 @@ class setup_block extends uvm_reg_block;
     this.default_map.add_reg(this.timer[1], 6'h3);
 
     // Sub-Blocks
+
+    lock_model();
   endfunction
 endclass
 
@@ -298,5 +300,7 @@ class traffic_light_block extends uvm_reg_block;
     this.setup = setup_block::type_id::create("setup",, get_full_name());
     this.setup.build();
     this.default_map.add_submap(this.setup.default_map, 6'h10);
+
+    lock_model();
   endfunction
 endclass"""

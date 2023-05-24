@@ -590,7 +590,34 @@ class PagedAddressBlock(_AddressBlockBase):
   def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
     raise NotImplementedError()
 
+  def _check_address_space(self, size: int, offset: int) -> bool:
+    """Checks the given offset in the address space has free space greater than
+    or equal to the size provided. Only checks against registers since sub-blocks
+    are mutually exclusive
+
+    Args:
+        size (int): The size of the address space to check
+        offset (int): The offset in the address space to check
+
+    Returns:
+        bool: True if the address space is free, False otherwise
+    """
+    upper_bound = size + offset - 1
+    for reg_offset, reg in self.registers.items():
+      if (upper_bound >= reg_offset + self.data_bytes() - 1) and \
+         (offset <= reg_offset + self.data_bytes() - 1):
+        return False
+      if (upper_bound >= reg_offset) and (offset <= reg_offset):
+        return False
+
+    return True
+
   def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+    if not self._check_address_space(blk.size(), blk.base_address):
+      _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
+                   f" {blk.name} overlaps with existing registers.")
+      return False
+
     if offset is None:
       for i in range(0, 2**(self.data_size)):
         if i not in self.sub_blocks:
@@ -600,12 +627,7 @@ class PagedAddressBlock(_AddressBlockBase):
                    f" Maximum number of pages ({2**self.data_size}) reached.")
       return False
 
-    if not self._check_address_space(blk.size(), 0):
-      _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
-                   f" {blk.name} overlaps with existing registers.")
-      return False
-
-    if not offset not in self.sub_blocks:
+    if offset in self.sub_blocks:
       _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
                    f" {blk.name} overlaps with existing sub-block.")
       return False
