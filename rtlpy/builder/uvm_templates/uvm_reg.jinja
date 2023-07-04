@@ -1,0 +1,54 @@
+{##########################################################################}
+{# Python library to help with the automatic creation of RTL              #}
+{# Copyright (C) 2023, RISC-Lib Contributors                                     #}
+{#                                                                        #}
+{# This program is free software: you can redistribute it and/or modify   #}
+{# it under the terms of the GNU General Public License as published by   #}
+{# the Free Software Foundation, either version 3 of the License, or      #}
+{# (at your option) any later version.                                    #}
+{#                                                                        #}
+{# This program is distributed in the hope that it will be useful,        #}
+{# but WITHOUT ANY WARRANTY; without even the implied warranty of         #}
+{# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #}
+{# GNU General Public License for more details.                           #}
+{#                                                                        #}
+{# You should have received a copy of the GNU General Public License      #}
+{# along with this program.  If not, see <https://www.gnu.org/licenses/>. #}
+{##########################################################################}
+/** {{reg.name}} - UVM register model
+ * Fields:
+{% for lsb, fld in reg.fields|dictsort %}
+ *    {{ fld.name }} - LSB: {{ lsb }}, Width: {{ fld.size }}, Access: {{ fld.access.value }}
+{% endfor %}
+ */
+class {{reg.name.lower()}}_reg extends uvm_reg;
+  `uvm_object_utils({{reg.name.lower()}}_reg)
+
+{% for lsb, fld in reg.fields|dictsort %}
+  {%+ if fld.randomizable %}{{"rand "}}{% else %}{{"     "}}{% endif -%}
+  uvm_reg_field {{ fld.name }};
+{% endfor %}
+
+  function new (string name = "{{reg.name.lower()}}_reg");
+    super.new(name, {{data_size}}, build_coverage({{reg.coverage}}));
+  endfunction
+
+  // Build all register field objects
+  virtual function void build ();
+{% for lsb, fld in reg.fields|dictsort %}
+    this.{{ fld.name }} = uvm_reg_field::type_id::create("{{ fld.name }}",, get_full_name());
+{% endfor %}
+
+{% for lsb, fld in reg.fields|dictsort %}
+    this.{{ fld.name }}.configure(this,
+      {{- ""}} {{ fld.size}},
+      {{- ""}} {{ lsb}},
+      {{- ""}} {{ '"'}}{{fld.access.value}}",
+      {{- ""}} {{ 1 if fld.volatile else 0}},
+      {{- ""}} {{ fld.size}}'h{{ "%X" | format(fld.reset)}},
+      {{- ""}} {{ 1}},
+      {{- ""}} {{ 1 if fld.randomizable else 0}},
+      {{- ""}} {{ 0}});
+{% endfor %}
+  endfunction
+endclass

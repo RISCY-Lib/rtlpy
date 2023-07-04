@@ -1,3 +1,14 @@
+# Project Specific Ignores
+
+examples/*.vh
+examples/*.v
+examples/*.svh
+examples/*.sv
+
+########################################################
+# Python Ignores
+########################################################
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -8,7 +19,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+./build/
 develop-eggs/
 dist/
 downloads/
