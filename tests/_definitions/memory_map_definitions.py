@@ -272,6 +272,22 @@ class setup_block extends uvm_reg_block;
 
     lock_model();
   endfunction
+
+  function reregister();
+    this.default_map.unregister();
+
+    // Registers
+    this.default_map.add_reg(this.control, 6'h0);
+
+    this.default_map.add_reg(this.status, 6'h1);
+
+    this.default_map.add_reg(this.timer[0], 6'h2);
+
+    this.default_map.add_reg(this.timer[1], 6'h3);
+
+    // Sub-Blocks
+
+  endfunction
 endclass
 
 /** traffic_light - UVM register model
@@ -298,9 +314,19 @@ class traffic_light_block extends uvm_reg_block;
     // Registers
     // Sub-Blocks
     this.setup = setup_block::type_id::create("setup",, get_full_name());
+    this.setup.configure(this);
     this.setup.build();
     this.default_map.add_submap(this.setup.default_map, 6'h10);
 
     lock_model();
+  endfunction
+
+  function reregister();
+    this.default_map.unregister();
+
+    // Registers
+    // Sub-Blocks
+    this.default_map.add_submap(this.setup.default_map, 6'h10);
+
   endfunction
 endclass"""

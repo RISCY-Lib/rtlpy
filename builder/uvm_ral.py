@@ -51,10 +51,6 @@ def addrblock_to_ral(ablock: _AddressBlockBase,
   if isinstance(ablock, AddressBlock):
     template = env.get_template("uvm_reg_block.jinja")
   elif isinstance(ablock, PagedAddressBlock):
-    if ablock.page_reg is None:
-      raise TypeError(f"addrblock_to_ral has ablock which is {type(ablock)}" +
-                      "has a page_reg which is not sent")
-
     ral_str += reg_to_ral(ablock.page_reg, ablock.data_size) + "\n\n"
     template = env.get_template("uvm_reg_block_paged.jinja")
   else:
