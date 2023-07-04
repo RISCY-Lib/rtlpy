@@ -68,10 +68,31 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     // Sub-Blocks
 {% for offset, subblock in block.sub_blocks|dictsort %}
     this.{{ subblock.name }} = {{subblock.name.lower()}}_block::type_id::create("{{subblock.name}}",, get_full_name());
+    this.{{ subblock.name }}.configure(this);
     this.{{ subblock.name }}.build();
     this.default_map.add_submap(this.{{ subblock.name }}.default_map, {{block.addr_size}}'h{{ "%X" | format(offset)}});
 {% endfor %}
 
     lock_model();
+  endfunction
+
+  function reregister();
+    this.default_map.unregister();
+
+    // Registers
+{% for offset, reg in block.registers|dictsort %}
+  {% if reg.dimension == 1 %}
+    this.default_map.add_reg(this.{{reg.name}}, {{block.addr_size}}'h{{ "%X" | format(offset)}});{{"\n"}}
+  {% else %}
+    {% for i in range(0, reg.dimension) %}
+    this.default_map.add_reg(this.{{reg.name}}[{{i}}], {{block.addr_size}}'h{{ "%X" | format(offset + (i * block.data_bytes()))}});{{"\n"}}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+    // Sub-Blocks
+{% for offset, subblock in block.sub_blocks|dictsort %}
+    this.default_map.add_submap(this.{{ subblock.name }}.default_map, {{block.addr_size}}'h{{ "%X" | format(offset)}});
+{% endfor %}
+
   endfunction
 endclass

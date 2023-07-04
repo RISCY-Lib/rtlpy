@@ -20,14 +20,16 @@ from __future__ import annotations
 
 from jinja2 import Environment, PackageLoader
 
-from rtlpy.design.memory import Register, AddressBlock, PagedAddressBlock
+from rtlpy.design.memory import Register, AddressBlock, PagedAddressBlock, _AddressBlockBase
 
 
-def addrblock_to_ral(ablock: AddressBlock) -> str:
+def addrblock_to_ral(ablock: _AddressBlockBase,
+                     predictor_type: str = "uvm_reg_predictor#(uvm_sequence_item)") -> str:
   """Convert the provided AddressBlock and all sub-components to UVM registers and blocks.
 
   Args:
       ablock (AddressBlock): The address block to create the UVM hierarchy from
+      predictor_type (str): The UVM predictor to use when creating a paged address block
 
   Returns:
       str: The string version of the generated RAL
@@ -49,11 +51,12 @@ def addrblock_to_ral(ablock: AddressBlock) -> str:
   if isinstance(ablock, AddressBlock):
     template = env.get_template("uvm_reg_block.jinja")
   elif isinstance(ablock, PagedAddressBlock):
+    ral_str += reg_to_ral(ablock.page_reg, ablock.data_size) + "\n\n"
     template = env.get_template("uvm_reg_block_paged.jinja")
   else:
     raise TypeError(f"addrblock_to_ral cannot handle an address block of type: {type(ablock)}")
 
-  ral_str += template.render(block=ablock)
+  ral_str += template.render(block=ablock, predictor_type=predictor_type)
 
   return ral_str
 
