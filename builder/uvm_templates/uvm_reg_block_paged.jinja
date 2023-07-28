@@ -1,6 +1,6 @@
 {##########################################################################}
 {# Python library to help with the automatic creation of RTL              #}
-{# Copyright (C) 2023, RISC-Lib Contributors                                     #}
+{# Copyright (C) 2023, RISC-Lib Contributors                              #}
 {#                                                                        #}
 {# This program is free software: you can redistribute it and/or modify   #}
 {# it under the terms of the GNU General Public License as published by   #}
@@ -106,7 +106,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     this.{{ subblock.name }}_map.add_submap(this.{{ subblock.name }}.default_map, {{subblock.base_address}});{{"\n"}}
   {% else %}
     {% for i in range(0, subblock.dimension) %}
-    this.{{ subblock.name }}[{{i}}] = {{subblock.name.lower()}}_block::type_id::create("{{subblock.name}}",, get_full_name());
+    this.{{ subblock.name }}[{{i}}] = {{subblock.name.lower()}}_block::type_id::create("{{subblock.name}}[{{i}}]",, get_full_name());
     this.{{ subblock.name }}[{{i}}].configure(this);
     this.{{ subblock.name }}[{{i}}].build();
     this.{{ subblock.name }}_map[{{i}}] = create_map("{{ subblock.name }}_map[{{i}}]", {{subblock.base_address}}, {{"%d" | format(block.data_bytes())}},
