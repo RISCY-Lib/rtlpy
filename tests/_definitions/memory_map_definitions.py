@@ -154,8 +154,33 @@ class control_reg extends uvm_reg;
   rand uvm_reg_field blink_red;
   rand uvm_reg_field profile;
 
+  // CVR Field Vals Group
+  covergroup cg_vals;
+    option.per_instance = 1;
+
+    mod_en: coverpoint mod_en.value {
+      bins vals[] = {[0:1]};
+    }
+    blink_yellow: coverpoint blink_yellow.value {
+      bins vals[] = {[0:1]};
+    }
+    blink_red: coverpoint blink_red.value {
+      bins vals[] = {[0:1]};
+    }
+    profile: coverpoint profile.value {
+      bins vals[] = {[0:1]};
+    }
+  endgroup
+
+  // Create new register
   function new (string name = "control_reg");
     super.new(name, 8, build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+    add_coverage(build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+
+    if (has_coverage(UVM_CVR_FIELD_VALS)) begin
+      cg_vals = new();
+      cg_vals.set_inst_name({get_full_name(), "_cg_vals"});
+    end
   endfunction
 
   // Build all register field objects
@@ -169,6 +194,16 @@ class control_reg extends uvm_reg;
     this.blink_yellow.configure(this, 1, 1, "RW", 0, 1'h0, 1, 1, 0);
     this.blink_red.configure(this, 1, 2, "RW", 0, 1'h0, 1, 1, 0);
     this.profile.configure(this, 1, 3, "RW", 0, 1'h0, 1, 1, 0);
+    set_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP);
+  endfunction
+
+
+  // The register sample function
+  virtual function void sample_values();
+    super.sample_values();
+
+    if (has_coverage(UVM_CVR_FIELD_VALS))
+      cg_vals.sample();
   endfunction
 endclass
 
@@ -181,8 +216,24 @@ class status_reg extends uvm_reg;
 
        uvm_reg_field state;
 
+  // CVR Field Vals Group
+  covergroup cg_vals;
+    option.per_instance = 1;
+
+    state: coverpoint state.value {
+      bins vals[] = {[0:3]};
+    }
+  endgroup
+
+  // Create new register
   function new (string name = "status_reg");
     super.new(name, 8, build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+    add_coverage(build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+
+    if (has_coverage(UVM_CVR_FIELD_VALS)) begin
+      cg_vals = new();
+      cg_vals.set_inst_name({get_full_name(), "_cg_vals"});
+    end
   endfunction
 
   // Build all register field objects
@@ -190,6 +241,16 @@ class status_reg extends uvm_reg;
     this.state = uvm_reg_field::type_id::create("state",, get_full_name());
 
     this.state.configure(this, 2, 0, "RO", 0, 2'h0, 1, 0, 0);
+    set_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP);
+  endfunction
+
+
+  // The register sample function
+  virtual function void sample_values();
+    super.sample_values();
+
+    if (has_coverage(UVM_CVR_FIELD_VALS))
+      cg_vals.sample();
   endfunction
 endclass
 
@@ -206,8 +267,30 @@ class timer_reg extends uvm_reg;
   rand uvm_reg_field timer_r2g;
   rand uvm_reg_field timer_g2y;
 
+  // CVR Field Vals Group
+  covergroup cg_vals;
+    option.per_instance = 1;
+
+    timer_y2r: coverpoint timer_y2r.value {
+      bins vals[] = {[0:7]};
+    }
+    timer_r2g: coverpoint timer_r2g.value {
+      bins vals[] = {[0:7]};
+    }
+    timer_g2y: coverpoint timer_g2y.value {
+      bins vals[] = {[0:3]};
+    }
+  endgroup
+
+  // Create new register
   function new (string name = "timer_reg");
     super.new(name, 8, build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+    add_coverage(build_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP));
+
+    if (has_coverage(UVM_CVR_FIELD_VALS)) begin
+      cg_vals = new();
+      cg_vals.set_inst_name({get_full_name(), "_cg_vals"});
+    end
   endfunction
 
   // Build all register field objects
@@ -219,6 +302,16 @@ class timer_reg extends uvm_reg;
     this.timer_y2r.configure(this, 3, 0, "RW", 0, 3'h5, 1, 1, 0);
     this.timer_r2g.configure(this, 3, 3, "RW", 0, 3'h7, 1, 1, 0);
     this.timer_g2y.configure(this, 2, 6, "RW", 0, 2'h2, 1, 1, 0);
+    set_coverage(UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP);
+  endfunction
+
+
+  // The register sample function
+  virtual function void sample_values();
+    super.sample_values();
+
+    if (has_coverage(UVM_CVR_FIELD_VALS))
+      cg_vals.sample();
   endfunction
 endclass
 
@@ -248,22 +341,22 @@ class setup_block extends uvm_reg_block;
     this.default_map = create_map("", 16, 1, UVM_LITTLE_ENDIAN);
 
     // Registers
-    this.control = control_reg::type_id::create("control",, get_full_name());
+    this.control = control_reg::type_id::create({get_name(), ".control"},, get_full_name());
     this.control.configure(this, null, "");
     this.control.build();
     this.default_map.add_reg(this.control, 6'h0);
 
-    this.status = status_reg::type_id::create("status",, get_full_name());
+    this.status = status_reg::type_id::create({get_name(), ".status"},, get_full_name());
     this.status.configure(this, null, "");
     this.status.build();
     this.default_map.add_reg(this.status, 6'h1);
 
-    this.timer[0] = timer_reg::type_id::create("timer[0]",, get_full_name());
+    this.timer[0] = timer_reg::type_id::create({get_name(), ".timer[0]"},, get_full_name());
     this.timer[0].configure(this, null, "");
     this.timer[0].build();
     this.default_map.add_reg(this.timer[0], 6'h2);
 
-    this.timer[1] = timer_reg::type_id::create("timer[1]",, get_full_name());
+    this.timer[1] = timer_reg::type_id::create({get_name(), ".timer[1]"},, get_full_name());
     this.timer[1].configure(this, null, "");
     this.timer[1].build();
     this.default_map.add_reg(this.timer[1], 6'h3);
