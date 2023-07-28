@@ -40,12 +40,6 @@ class {{reg.name.lower()}}_reg extends uvm_reg;
     {% endif %}{% endfor %}
   endgroup
 
-  // CVR Register Bits
-  {# covergroup cg_bits;
-    option.per_instance = 1;
-
-  endgroup #}
-
   // Create new register
   function new (string name = "{{reg.name.lower()}}_reg");
     super.new(name, {{data_size}}, build_coverage({{reg.coverage}}));
@@ -55,11 +49,6 @@ class {{reg.name.lower()}}_reg extends uvm_reg;
       cg_vals = new();
       cg_vals.set_inst_name({{'{'}}get_full_name(), "_cg_vals"{{'}'}});
     end
-
-    {# if (has_coverage(UVM_CVR_REG_BITS)) begin
-      cg_bits = new();
-      cg_bits.set_inst_name({{'{'}}get_full_name(), "_cg_bits"{{'}'}});
-    end #}
   endfunction
 
   // Build all register field objects
@@ -89,9 +78,5 @@ class {{reg.name.lower()}}_reg extends uvm_reg;
 
     if (has_coverage(UVM_CVR_FIELD_VALS))
       cg_vals.sample();
-
-    {# if (has_coverage(UVM_CVR_REG_BITS))
-      cg_bits.sample(); #}
-
   endfunction
 endclass
