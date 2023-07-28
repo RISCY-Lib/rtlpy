@@ -1,6 +1,6 @@
 {##########################################################################}
 {# Python library to help with the automatic creation of RTL              #}
-{# Copyright (C) 2023, RISC-Lib Contributors                                     #}
+{# Copyright (C) 2023, RISC-Lib Contributors                              #}
 {#                                                                        #}
 {# This program is free software: you can redistribute it and/or modify   #}
 {# it under the terms of the GNU General Public License as published by   #}
@@ -52,13 +52,13 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     // Registers
 {% for offset, reg in block.registers|dictsort %}
   {% if reg.dimension == 1 %}
-    this.{{reg.name}} = {{reg.name.lower()}}_reg::type_id::create("{{reg.name}}",, get_full_name());
+    this.{{reg.name}} = {{reg.name.lower()}}_reg::type_id::create({{'{'}}get_name(), ".{{reg.name}}"{{'}'}},, get_full_name());
     this.{{reg.name}}.configure(this, null, "");
     this.{{reg.name}}.build();
     this.default_map.add_reg(this.{{reg.name}}, {{block.addr_size}}'h{{ "%X" | format(offset)}});{{"\n"}}
   {% else %}
     {% for i in range(0, reg.dimension) %}
-    this.{{reg.name}}[{{i}}] = {{reg.name.lower()}}_reg::type_id::create("{{reg.name}}[{{i}}]",, get_full_name());
+    this.{{reg.name}}[{{i}}] = {{reg.name.lower()}}_reg::type_id::create({{'{'}}get_name(), ".{{reg.name}}[{{i}}]"{{'}'}},, get_full_name());
     this.{{reg.name}}[{{i}}].configure(this, null, "");
     this.{{reg.name}}[{{i}}].build();
     this.default_map.add_reg(this.{{reg.name}}[{{i}}], {{block.addr_size}}'h{{ "%X" | format(offset + (i * block.data_bytes()))}});{{"\n"}}
