@@ -29,8 +29,26 @@ class {{reg.name.lower()}}_reg extends uvm_reg;
   uvm_reg_field {{ fld.name }};
 {% endfor %}
 
+  // CVR Field Vals Group
+  covergroup cg_vals;
+    option.per_instance = 1;
+
+    {% for lsb, fld in reg.fields|dictsort %}{% if fld.name != "RESERVED" %}
+    {{ fld.name }}: coverpoint {{ fld.name }}.value {
+      bins vals[] = {[0:{{ 2**fld.size - 1}}]};
+    }
+    {% endif %}{% endfor %}
+  endgroup
+
+  // Create new register
   function new (string name = "{{reg.name.lower()}}_reg");
     super.new(name, {{data_size}}, build_coverage({{reg.coverage}}));
+    add_coverage(build_coverage({{reg.coverage}}));
+
+    if (has_coverage(UVM_CVR_FIELD_VALS)) begin
+      cg_vals = new();
+      cg_vals.set_inst_name({{'{'}}get_full_name(), "_cg_vals"{{'}'}});
+    end
   endfunction
 
   // Build all register field objects
@@ -50,5 +68,15 @@ class {{reg.name.lower()}}_reg extends uvm_reg;
       {{- ""}} {{ 1 if fld.randomizable else 0}},
       {{- ""}} {{ 0}});
 {% endfor %}
+    set_coverage({{reg.coverage}});
+  endfunction
+
+
+  // The register sample function
+  virtual function void sample_values();
+    super.sample_values();
+
+    if (has_coverage(UVM_CVR_FIELD_VALS))
+      cg_vals.sample();
   endfunction
 endclass
