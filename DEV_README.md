@@ -16,3 +16,19 @@ Coding style requirements can be checked by running ```flake8 rtlpy tests``` fro
 
 Additionally, the static-typing requirement of the CodingStyle can be checked
   by running ```mypy rtlpy```
+
+## Releasing
+
+Releases are published automatically when a tag is pushed to GitHub.
+
+```bash
+  # Set next version number
+  export RELEASE=x.x.x
+
+  # Create tags
+  git commit --allow-empty -m "Release $RELEASE"
+  git tag -a $RELEASE -m "Version $RELEASE"
+
+  # Push
+  git push --tags
+```
