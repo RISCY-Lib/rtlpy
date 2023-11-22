@@ -22,7 +22,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rtlpy"
-version = "1.0.0b0"
+version = "1.0.0b1"
 description = "A Library of Python Utilities for RTL Design"
 readme = "README.md"
 authors = [{name = "Benjamin Davis", email = "allrisc.dev@gmail.com"}]
