@@ -1,6 +1,6 @@
 ##########################################################################
-# Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISC-Lib Contributors                                     #
+# rtlpy is a open-source utility library for RTL developers              #
+# Copyright (C) 2022, RISCY-Lib Contributors                                    #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -15,3 +15,11 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
+
+VERSION = {"major": 0, "minor": 0, "patch": 0, "status": "alpha"}
+"""Version Dictionary (keys: major, minor, patch, status)"""
+
+if (VERSION['status'] != ''):
+  __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}-{VERSION['status']}"
+else:
+  __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}"

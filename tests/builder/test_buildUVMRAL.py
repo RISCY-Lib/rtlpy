@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISC-Lib Contributors                                     #
+# Copyright (C) 2022, RISCY-Lib Contributors                                    #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -19,7 +19,7 @@
 """
 
 from rtlpy.design import AddressBlock
-import rtlpy.builder.uvm_ral as uvm_ral
+import rtlpy.uvm as uvm
 
 import tests._definitions.memory_map_definitions as test_defs
 
@@ -27,6 +27,6 @@ import tests._definitions.memory_map_definitions as test_defs
 def test_TrafficLightFullRAL():
   mem_map = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
-  ral_str = uvm_ral.addrblock_to_ral(mem_map)
+  ral_str = uvm.addrblock_to_ral(mem_map)
 
   assert ral_str == test_defs.TRAFFIC_LIGHT_RAL_STR

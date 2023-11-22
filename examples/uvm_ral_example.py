@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISC-Lib Contributors                                     #
+# Copyright (C) 2022, RISCY-Lib Contributors                                    #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from rtlpy.design.memory import Register
-import rtlpy.builder.uvm_ral as ral
+import rtlpy.uvm as ral
 
 reg_def = {
   "name": "control",

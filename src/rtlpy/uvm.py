@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISC-Lib Contributors                                     #
+# Copyright (C) 2022, RISCY-Lib Contributors                             #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -35,7 +35,7 @@ def addrblock_to_ral(ablock: _AddressBlockBase,
       str: The string version of the generated RAL
   """
   env = Environment(
-    loader=PackageLoader("rtlpy.builder", "uvm_templates"),
+    loader=PackageLoader("rtlpy", "_uvm_templates"),
     lstrip_blocks=True,
     trim_blocks=True
   )
@@ -80,7 +80,7 @@ def reg_to_ral(
       str: The string version of the generated RAL
   """
   env = Environment(
-    loader=PackageLoader("rtlpy.builder", "uvm_templates"),
+    loader=PackageLoader("rtlpy", "_uvm_templates"),
     lstrip_blocks=True,
     trim_blocks=True
   )
