@@ -1,6 +1,6 @@
 ##########################################################################
 # rtlpy is a open-source utility library for RTL developers              #
-# Copyright (C) 2022, RISCY-Lib Contributors                                    #
+# Copyright (C) 2022, RISCY-Lib Contributors                             #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -16,10 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-VERSION = {"major": 0, "minor": 0, "patch": 0, "status": "alpha"}
-"""Version Dictionary (keys: major, minor, patch, status)"""
+from __future__ import annotations
 
-if (VERSION['status'] != ''):
-  __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}-{VERSION['status']}"
-else:
-  __version__ = f"{VERSION['major']}.{VERSION['minor']}.{VERSION['patch']}"
+import re
+
+#####################################################################################
+# Version Information
+#####################################################################################
+from rtlpy._info import __version__
+
+version_info = [int(x) if x.isdigit() else x for x in re.split("\.|-", __version__)]

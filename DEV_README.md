@@ -22,13 +22,18 @@ Additionally, the static-typing requirement of the CodingStyle can be checked
 Releases are published automatically when a tag is pushed to GitHub.
 
 ```bash
+
   # Set next version number
   export RELEASE=x.x.x
+  export RELEASE=export RELEASE=$(python -c "import rtlpy._info as _info; print(_info.__version__)")
+
+  # Ensure committing everything (optional)
+  git add -A
 
   # Create tags
   git commit --allow-empty -m "Release $RELEASE"
   git tag -a $RELEASE -m "Version $RELEASE"
 
   # Push
-  git push --tags
+  git push --follow-tags
 ```

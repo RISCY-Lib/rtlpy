@@ -22,7 +22,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rtlpy"
-version = "1.0.0b0"
+dynamic = ["version"]
 description = "A Library of Python Utilities for RTL Design"
 readme = "README.md"
 authors = [{name = "Benjamin Davis", email = "allrisc.dev@gmail.com"}]
@@ -31,6 +31,7 @@ dependencies = [
   "jinja2>3.0.0",
 ]
 classifiers = [
+    # "Development Status :: 5 - Production/Stable",
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3",
@@ -48,7 +49,8 @@ requires-python = ">=3.8"
 
 [project.urls]
 Homepage = "https://github.com/RISC-Lib/rtlpy"
-Documentation = "https://github.com/allRisc/RISC-Lib/rtlpy/README.md"
+Documentation = "https://rtlpy.readthedocs.io/en/latest/index.html"
 
 [project.optional-dependencies]
-dev = ["flake8", "mypy", "tox", "pytest", "sphinx", "sphinx_markdown_builder", "sphinx-rtd-theme"]
+dev = ["flake8", "mypy", "tox", "pytest", "sphinx", "sphinx-rtd-theme"]
+docs = ["sphinx", "sphinx-rtd-theme"]

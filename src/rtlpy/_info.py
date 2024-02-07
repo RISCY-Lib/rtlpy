@@ -1,6 +1,6 @@
 ##########################################################################
 # rtlpy is a open-source utility library for RTL developers              #
-# Copyright (C) 2022, RISCY-Lib Contributors                             #
+# Copyright (C) 2024, RISCY-Lib Contributors                             #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -16,20 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from setuptools import setup
 
-import importlib.util
-import pathlib
+from __future__ import annotations
 
-_proj_root = pathlib.Path(__file__).parent
-_info_spec = importlib.util.spec_from_file_location(
-                                   "rtlpy._info",
-                                   _proj_root.joinpath("src", "rtlpy", "_info.py")
-                               )
-_info = importlib.util.module_from_spec(_info_spec)
-_info_spec.loader.exec_module(_info)
 
-if __name__ == "__main__":
-  setup(
-    version=_info.__version__
-  )
+__version__: str = "1.0.0-b1"
+__author__: str = "RISCY-Lib Contributors"

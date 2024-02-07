@@ -69,5 +69,4 @@ reg_def = {
 
 reg = Register.from_dict(reg_def)
 
-with open("control_reg.sv", "w") as fout:
-    fout.write(ral.reg_to_ral(reg))
+print(ral.reg_to_ral(reg))
