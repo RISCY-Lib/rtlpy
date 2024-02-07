@@ -25,4 +25,4 @@ import re
 #####################################################################################
 from rtlpy._info import __version__
 
-version_info = [int(x) if x.isdigit() else x for x in re.split("\.|-", __version__)]
+version_info = [int(x) if x.isdigit() else x for x in re.split(r"\.|-", __version__)]

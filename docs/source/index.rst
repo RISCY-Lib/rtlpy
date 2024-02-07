@@ -3,15 +3,15 @@
 rtlpy documentation
 ===================================
 
-.. image:: https://github.com/allRisc/command_creator/actions/workflows/test.yml/badge.svg
+.. image:: https://github.com/RISCY-Lib/rtlpy/actions/workflows/tests.yml/badge.svg
    :alt: Tests
-   :target: https://github.com/allRisc/command_creator/actions/workflows/test.yml
-.. image:: https://img.shields.io/pypi/v/command_creator.svg
+   :target: https://github.com/RISCY-Lib/rtlpy/actions/workflows/test.yml
+.. image:: https://img.shields.io/pypi/v/rtlpy.svg
    :alt: PyPi Latest Release
-   :target: https://pypi.org/project/command_creator/
-.. image:: https://readthedocs.org/projects/command-creator/badge
+   :target: https://pypi.org/project/rtlpy/
+.. image:: https://readthedocs.org/projects/rtlpy/badge
    :alt: Documentation Status
-   :target: https://command-creator.readthedocs.io/en/latest/index.html
+   :target: https://rtlpy.readthedocs.io/en/latest/index.html
 
 .. autosummary::
    :toctree: _autosummary
