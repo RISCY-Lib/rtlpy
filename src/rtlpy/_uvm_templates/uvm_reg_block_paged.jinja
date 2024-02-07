@@ -49,10 +49,13 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
   {{subblock.name.lower()}}_block {{ subblock.name }}{% if subblock.dimension > 1 %}[{{subblock.dimension}}]{% endif %};
 {% endfor %}
 
+{# Constructor #}
+  // Constructor
   function new (string name = "{{block.name.lower()}}_block");
     super.new(name, build_coverage({{block.coverage}}));
   endfunction
 
+{# Function to add all registers to the map #}
   virtual function void _add_registers(uvm_reg_map map);
     // Page Register
     map.add_reg(this.{{block.page_reg.name}}, {{block.addr_size}}'h{{ "%X" | format(block.page_reg_offset)}});
@@ -69,6 +72,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
 {% endfor %}
   endfunction
 
+{# UVM Build Function #}
   // Build all register and sub-block objects
   virtual function void build ();
     this.default_map = create_map("", {{block.base_address}}, {{"%d" | format(block.data_bytes())}},
@@ -122,6 +126,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
     lock_model();
   endfunction
 
+{# Function to set the map_sequencer property for all sub-blocks #}
   function set_map_sequencer(uvm_sequencer_base sqr, uvm_reg_adapter adapter = null);
 {% for offset, subblock in block.sub_blocks|dictsort %}
   {% if subblock.dimension == 1 %}
@@ -137,6 +142,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
 
   endfunction
 
+{# Function to set the map_auto_predict property for all sub-blocks #}
   function set_map_auto_predict(bit on = 1);
 {% for offset, subblock in block.sub_blocks|dictsort %}
   {% if subblock.dimension == 1 %}
@@ -152,6 +158,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
 
   endfunction
 
+{# Function to set the map_check_on_read property for all sub-blocks #}
   function set_map_check_on_read(bit on = 1);
 {% for offset, subblock in block.sub_blocks|dictsort %}
   {% if subblock.dimension == 1 %}
@@ -167,6 +174,7 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
 
   endfunction
 
+{# For each page create a function that allows you to switch to that page #}
 {% for offset, subblock in block.sub_blocks|dictsort %}
   {% if subblock.dimension == 1 %}
   task page_{{subblock.name.lower()}}();
@@ -202,18 +210,17 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
   endtask{{"\n"}}
 {% endfor %}
 
+{# Create the task which switches pages to the sub-block it is passed #}
   task page(ref uvm_reg_block blk);
-    case (blk)
-    {% for offset, subblock in block.sub_blocks|dictsort %}
-      {% if subblock.dimension == 1 %}
-      this.{{subblock.name}}: page_{{subblock.name.lower()}}();
-      {% else %}
-      {% for i in range(this.subblock.dimension) %}
-      this.{{subblock.name}}[{{i}}]: page_{{subblock.name.lower()}}({{i}});
-      {% endfor %}
-      default: `uvm_error("RAL", $sformatf("Unknown block %s", blk.get_full_name()));
-      {% endif %}
+{% for offset, subblock in block.sub_blocks|dictsort %}
+  {% if subblock.dimension == 1 %}
+    {{"else " if not loop.first else ""}}if (blk == this.{{subblock.name}}) page_{{subblock.name.lower()}}();
+  {% else %}
+    {% for i in range(this.subblock.dimension) %}
+    {{"else " if not loop.first else ""}}if (blk == this.{{subblock.name}}[{{i}}]) page_{{subblock.name.lower()}}({{i}});
     {% endfor %}
-    endcase
+  {% endif %}
+{% endfor %}
+    else `uvm_error("RAL", $sformatf("Unknown block %s", blk.get_full_name()))
   endtask
 endclass
