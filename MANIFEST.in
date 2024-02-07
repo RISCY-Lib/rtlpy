@@ -16,4 +16,4 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #####################################################################################
 
-include src/rtlpy/_uvm_templates/*.jinja
+include src/rtlpy/**/*.jinja

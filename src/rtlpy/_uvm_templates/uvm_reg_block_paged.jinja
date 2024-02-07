@@ -201,4 +201,19 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
   {%endif %}
   endtask{{"\n"}}
 {% endfor %}
+
+  task page(ref uvm_reg_block blk);
+    case (blk)
+    {% for offset, subblock in block.sub_blocks|dictsort %}
+      {% if subblock.dimension == 1 %}
+      this.{{subblock.name}}: page_{{subblock.name.lower()}}();
+      {% else %}
+      {% for i in range(this.subblock.dimension) %}
+      this.{{subblock.name}}[{{i}}]: page_{{subblock.name.lower()}}({{i}});
+      {% endfor %}
+      default: `uvm_error("RAL", $sformatf("Unknown block %s", blk.get_full_name()));
+      {% endif %}
+    {% endfor %}
+    endcase
+  endtask
 endclass
