@@ -20,5 +20,5 @@
 from __future__ import annotations
 
 
-__version__: str = "1.0.0"
+__version__: str = "1.0.1"
 __author__: str = "RISCY-Lib Contributors"
