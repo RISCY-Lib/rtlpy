@@ -25,7 +25,7 @@ Releases are published automatically when a tag is pushed to GitHub.
 
   # Set next version number
   export RELEASE=x.x.x
-  export RELEASE=export RELEASE=$(python -c "import rtlpy._info as _info; print(_info.__version__)")
+  export RELEASE=$(python -c "import rtlpy._info as _info; print(_info.__version__)")
 
   # Ensure committing everything (optional)
   git add -A
