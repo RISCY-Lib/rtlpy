@@ -22,9 +22,6 @@
 from rtlpy.design import AddressBlock
 
 
-import tests._definitions.memory_map_definitions as test_defs
-
-
 def test_defaultAddressBlock():
   blk = AddressBlock(name="test_name", addr_size=32, data_size=32)
 
@@ -39,22 +36,22 @@ def test_defaultAddressBlock():
   assert len(blk.sub_blocks) == 0
 
 
-def test_singleSubBlockAddressBlockFromDict():
-  blk = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+def test_singleSubBlockAddressBlockFromDict(traffic_light_full_def):
+  blk = AddressBlock.from_dict(traffic_light_full_def)
 
-  assert blk.name == test_defs.TRAFFIC_LIGHT_FULL_DEF["name"]
+  assert blk.name == traffic_light_full_def["name"]
   assert blk.addr_size == 6
   assert blk.data_size == 8
   assert blk.base_address == 0
   assert blk.dimension == 1
   assert blk.endianness == "little"
-  assert blk.coverage == test_defs.TRAFFIC_LIGHT_FULL_DEF["coverage"]
+  assert blk.coverage == traffic_light_full_def["coverage"]
   assert len(blk.registers) == 0
   assert len(blk.sub_blocks) == 1
 
 
-def test_multipleRegisterAddressBlockFromDict():
-  blk = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+def test_multipleRegisterAddressBlockFromDict(traffic_light_full_def):
+  blk = AddressBlock.from_dict(traffic_light_full_def)
 
   blk = blk.sub_blocks[16]
 
@@ -64,6 +61,6 @@ def test_multipleRegisterAddressBlockFromDict():
   assert blk.base_address == 16
   assert blk.dimension == 1
   assert blk.endianness == "little"
-  assert blk.coverage == test_defs.TRAFFIC_LIGHT_FULL_DEF["coverage"]
+  assert blk.coverage == traffic_light_full_def["coverage"]
   assert len(blk.registers) == 3
   assert len(blk.sub_blocks) == 0

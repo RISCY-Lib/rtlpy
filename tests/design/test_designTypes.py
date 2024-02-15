@@ -18,7 +18,6 @@
 """Module to test the rtlpy.design module
 """
 
-
 import pytest
 import rtlpy.design as design
 

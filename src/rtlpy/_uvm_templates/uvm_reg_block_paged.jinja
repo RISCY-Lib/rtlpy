@@ -212,17 +212,15 @@ class {{block.name.lower()}}_block extends uvm_reg_block;
 
 {# Create the task which switches pages to the sub-block it is passed #}
   task page(ref uvm_reg_block blk);
-{% set first = true %}
 {% for offset, subblock in block.sub_blocks|dictsort %}
+  {% set outer_loop = loop %}
   {% if subblock.dimension == 1 %}
-    {{"else " if first else ""}}if (blk == this.{{subblock.name}}) page_{{subblock.name.lower()}}();
+    {{"else " if not outer_loop.first else ""}}if (blk == this.{{subblock.name}}) page_{{subblock.name.lower()}}();
   {% else %}
     {% for i in range(subblock.dimension) %}
-    {{"else " if first else ""}}if (blk == this.{{subblock.name}}[{{i}}]) page_{{subblock.name.lower()}}({{i}});
-    {% set first = false %}
+    {{"else " if not outer_loop.first else ""}}if (blk == this.{{subblock.name}}[{{i}}]) page_{{subblock.name.lower()}}({{i}});
     {% endfor %}
   {% endif %}
-  {% set first = false %}
 {% endfor %}
     else `uvm_error("RAL", $sformatf("Unknown block %s", blk.get_full_name()))
   endtask

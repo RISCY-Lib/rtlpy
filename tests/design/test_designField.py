@@ -24,8 +24,6 @@ import logging
 
 from rtlpy.design import Field, AccessType
 
-import tests._definitions.design_test_definitions as test_defs
-
 
 def test_defaultField():
   fld = Field(name="test_name")
@@ -59,10 +57,10 @@ def test_fullField():
   assert fld.reserved
 
 
-def test_simpleFieldFromDict():
-  fld = Field.from_dict(test_defs.MINIMUM_FIELD_DEFINITION)
+def test_simpleFieldFromDict(minimum_field_definition):
+  fld = Field.from_dict(minimum_field_definition)
 
-  assert fld.name == test_defs.MINIMUM_FIELD_DEFINITION['name']
+  assert fld.name == minimum_field_definition['name']
   assert fld.size == 1
   assert fld.access is AccessType.READ_ONLY
   assert not fld.volatile
@@ -71,10 +69,10 @@ def test_simpleFieldFromDict():
   assert not fld.reserved
 
 
-def test_fullFieldFromDict():
-  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+def test_fullFieldFromDict(full_field_definition):
+  fld = Field.from_dict(full_field_definition)
 
-  assert fld.name == test_defs.FULL_FIELD_DEFINITION['name']
+  assert fld.name == full_field_definition['name']
   assert fld.size == 4
   assert fld.access is AccessType.WRITE_CLEARS
   assert fld.reset == 10
@@ -83,10 +81,10 @@ def test_fullFieldFromDict():
   assert not fld.reserved
 
 
-def test_reservedFieldFromDict():
-  fld = Field.from_dict(test_defs.RESERVED_FIELD_DEFINITION)
+def test_reservedFieldFromDict(reserved_field_definition):
+  fld = Field.from_dict(reserved_field_definition)
 
-  assert fld.name == test_defs.RESERVED_FIELD_DEFINITION['name']
+  assert fld.name == reserved_field_definition['name']
   assert fld.size == 8
   assert fld.access is AccessType.READ_ONLY
   assert fld.reset == 0xFA
@@ -99,8 +97,8 @@ def test_reservedFieldFromDict():
   ("bad name"),
   ("but_why?")
 ])
-def test_invalidField_BadName(name, caplog):
-  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+def test_invalidField_BadName(name, caplog, full_field_definition):
+  fld = Field.from_dict(full_field_definition)
 
   fld.name = name
 
@@ -111,8 +109,8 @@ def test_invalidField_BadName(name, caplog):
   ]
 
 
-def test_invalidField_RandomizableAndReserved(caplog):
-  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+def test_invalidField_RandomizableAndReserved(caplog, full_field_definition):
+  fld = Field.from_dict(full_field_definition)
 
   fld.randomizable = True
   fld.reserved = True
@@ -126,8 +124,8 @@ def test_invalidField_RandomizableAndReserved(caplog):
   ]
 
 
-def test_invalidField_ResetSize(caplog):
-  fld = Field.from_dict(test_defs.FULL_FIELD_DEFINITION)
+def test_invalidField_ResetSize(caplog, full_field_definition):
+  fld = Field.from_dict(full_field_definition)
 
   fld.reset = 0xFF
   fld.size = 2

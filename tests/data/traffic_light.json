@@ -1,0 +1,122 @@
+{
+    "name": "traffic_light",
+    "addr_size": 6,
+    "data_size": 8,
+    "endian": "little",
+    "coverage": "UVM_CVR_FIELD_VALS | UVM_CVR_ADDR_MAP",
+    "sub_blocks": [
+        {
+            "name": "setup",
+            "base_address": 16,
+            "registers": [
+                {
+                    "name": "control",
+                    "fields": [
+                        {
+                            "name": "mod_en",
+                            "size": 1,
+                            "lsb_pos": 0,
+                            "access": "RW",
+                            "reset": 0,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        },
+                        {
+                            "name": "blink_yellow",
+                            "size": 1,
+                            "lsb_pos": 1,
+                            "access": "RW",
+                            "reset": 0,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        },
+                        {
+                            "name": "blink_red",
+                            "size": 1,
+                            "lsb_pos": 2,
+                            "access": "RW",
+                            "reset": 0,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        },
+                        {
+                            "name": "profile",
+                            "size": 1,
+                            "lsb_pos": 3,
+                            "access": "RW",
+                            "reset": 0,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        }
+                    ]
+                },
+                {
+                    "name": "status",
+                    "fields": [
+                        {
+                            "name": "state",
+                            "size": 2,
+                            "lsb_pos": 0,
+                            "access": "RO",
+                            "reset": 0,
+                            "volatile": false,
+                            "randomizable": false,
+                            "reserved": false
+                        }
+                    ]
+                },
+                {
+                    "name": "timer",
+                    "dimension": 2,
+                    "fields": [
+                        {
+                            "name": "timer_y2r",
+                            "size": 3,
+                            "lsb_pos": 0,
+                            "access": "RW",
+                            "reset": 5,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        },
+                        {
+                            "name": "timer_r2g",
+                            "size": 3,
+                            "access": "RW",
+                            "reset": 7,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        },
+                        {
+                            "name": "timer_g2y",
+                            "size": 2,
+                            "access": "RW",
+                            "reset": 2,
+                            "volatile": false,
+                            "randomizable": true,
+                            "reserved": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "page_reg": {
+        "name": "page_reg",
+        "offset": 127,
+        "fields": [
+            {
+                "name": "page",
+                "size": 8,
+                "lsb_pos": 0,
+                "access": "RW",
+                "reset": 0
+            }
+        ]
+    }
+}
