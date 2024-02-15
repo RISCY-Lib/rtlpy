@@ -18,11 +18,7 @@
 """Module to test the rtlpy.design.PagedAddressBlock class
 """
 
-
 from rtlpy.design import PagedAddressBlock
-
-
-import tests._definitions.memory_map_definitions as test_defs
 
 
 def test_defaultPagedAddressBlock():
@@ -39,22 +35,22 @@ def test_defaultPagedAddressBlock():
   assert len(blk.sub_blocks) == 0
 
 
-def test_singleSubBlockPagedAddressBlockFromDict():
-  blk = PagedAddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+def test_singleSubBlockPagedAddressBlockFromDict(traffic_light_full_def):
+  blk = PagedAddressBlock.from_dict(traffic_light_full_def)
 
-  assert blk.name == test_defs.TRAFFIC_LIGHT_FULL_DEF["name"]
+  assert blk.name == traffic_light_full_def["name"]
   assert blk.addr_size == 6
   assert blk.data_size == 8
   assert blk.base_address == 0
   assert blk.dimension == 1
   assert blk.endianness == "little"
-  assert blk.coverage == test_defs.TRAFFIC_LIGHT_FULL_DEF["coverage"]
+  assert blk.coverage == traffic_light_full_def["coverage"]
   assert len(blk.registers) == 0
   assert len(blk.sub_blocks) == 1
 
 
-def test_multipleRegisterPagedAddressBlockFromDict():
-  blk = PagedAddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+def test_multipleRegisterPagedAddressBlockFromDict(traffic_light_full_def):
+  blk = PagedAddressBlock.from_dict(traffic_light_full_def)
 
   blk = blk.sub_blocks[0]
 
@@ -64,6 +60,6 @@ def test_multipleRegisterPagedAddressBlockFromDict():
   assert blk.base_address == 16
   assert blk.dimension == 1
   assert blk.endianness == "little"
-  assert blk.coverage == test_defs.TRAFFIC_LIGHT_FULL_DEF["coverage"]
+  assert blk.coverage == traffic_light_full_def["coverage"]
   assert len(blk.registers) == 3
   assert len(blk.sub_blocks) == 0
