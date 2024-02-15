@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISCY-Lib Contributors                                    #
+# Copyright (C) 2024, RISCY-Lib Contributors                             #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -18,14 +18,18 @@
 """Module to test the the ability of RTLPY to build a UVM_RAL from a MemoryMap definition
 """
 
-from rtlpy.design import AddressBlock
+import rtlpy.design as design
 import rtlpy.uvm as uvm
 
-import tests._definitions.memory_map_definitions as test_defs
+
+def test_UVMReg():
+  reg = design.Register("test_reg")
+  ral_str = uvm.reg_to_ral(reg, 32)
+  assert ral_str == "uvm_reg_field test_reg_field;\n\nuvm_reg test_reg;\n"
 
 
 def test_TrafficLightFullRAL():
-  mem_map = AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
+  mem_map = design.AddressBlock.from_dict(test_defs.TRAFFIC_LIGHT_FULL_DEF)
 
   ral_str = uvm.addrblock_to_ral(mem_map)
 
