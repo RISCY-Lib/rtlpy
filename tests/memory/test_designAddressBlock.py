@@ -19,7 +19,7 @@
 """
 
 
-from rtlpy.design import AddressBlock
+from rtlpy.memory import AddressBlock
 
 
 def test_defaultAddressBlock():

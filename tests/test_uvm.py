@@ -18,12 +18,12 @@
 """Module to test the the ability of RTLPY to build a UVM_RAL from a MemoryMap definition
 """
 
-import rtlpy.design as design
+import rtlpy.memory as memory
 import rtlpy.uvm as uvm
 
 
 def test_UVMReg():
-  reg = design.Register("test_reg")
+  reg = memory.Register("test_reg")
   ral_str = uvm.reg_to_ral(reg, 32)
   assert ral_str == """/** test_reg - UVM register model
  * Fields:
@@ -67,7 +67,7 @@ endclass"""
 
 
 def test_TrafficLightFullRAL(traffic_light_full_def, traffic_light_ral):
-  mem_map = design.AddressBlock.from_dict(traffic_light_full_def)
+  mem_map = memory.AddressBlock.from_dict(traffic_light_full_def)
 
   ral_str = uvm.addrblock_to_ral(mem_map)
 
@@ -75,22 +75,22 @@ def test_TrafficLightFullRAL(traffic_light_full_def, traffic_light_ral):
 
 
 def test_PagedBlockRAL(paged_block_ral):
-  mem_map = design.PagedAddressBlock("test_paged_block", 32, 32)
+  mem_map = memory.PagedAddressBlock(name="test_paged_block", addr_size=32, data_size=32)
 
-  sblock1 = design.AddressBlock("subblock1", 32, 32)
-  sblock1.add_register(design.Register("subblock1_reg1"))
-  sblock1.add_register(design.Register("subblock1_reg2"))
+  sblock1 = memory.AddressBlock(name="subblock1", addr_size=32, data_size=32)
+  sblock1.add_register(memory.Register(name="subblock1_reg1"))
+  sblock1.add_register(memory.Register(name="subblock1_reg2"))
 
-  sblock2 = design.AddressBlock("subblock2", 32, 32)
-  sblock2.add_register(design.Register("subblock2_reg1"))
-  sblock2.add_register(design.Register("subblock2_reg2"))
+  sblock2 = memory.AddressBlock(name="subblock2", addr_size=32, data_size=32)
+  sblock2.add_register(memory.Register(name="subblock2_reg1"))
+  sblock2.add_register(memory.Register(name="subblock2_reg2"))
   sblock2.dimension = 4
 
   mem_map.add_subblock(sblock1)
   mem_map.add_subblock(sblock2, 0x10)
 
-  page_reg = design.Register("page_reg")
-  page_reg.add_field(design.Field("page", 4, design.AccessType.READ_WRITE, 0))
+  page_reg = memory.Register(name="page_reg")
+  page_reg.add_field(memory.Field(name="page", size=4, access=memory.AccessType.READ_WRITE, reset=0))
   mem_map.page_reg = page_reg
   mem_map.page_reg_offset = 0x100
 

@@ -22,7 +22,7 @@ import pytest
 
 import logging
 
-from rtlpy.design import Field, AccessType
+from rtlpy.memory import Field, AccessType
 
 
 def test_defaultField():
@@ -105,7 +105,7 @@ def test_invalidField_BadName(name, caplog, full_field_definition):
   assert not fld.valid()
 
   assert caplog.record_tuples == [
-    ("rtlpy.design.memory", logging.ERROR, f"Field ({name}) has an invalid name.")
+    ("rtlpy.memory", logging.ERROR, f"Field ({name}) has an invalid name.")
   ]
 
 
@@ -118,7 +118,7 @@ def test_invalidField_RandomizableAndReserved(caplog, full_field_definition):
   assert not fld.valid()
 
   assert caplog.record_tuples == [
-    ("rtlpy.design.memory",
+    ("rtlpy.memory",
      logging.WARNING,
      f"Field ({fld.name}) cannot be randomizable and reserved.")
   ]
@@ -133,7 +133,7 @@ def test_invalidField_ResetSize(caplog, full_field_definition):
   assert not fld.valid()
 
   assert caplog.record_tuples == [
-    ("rtlpy.design.memory",
+    ("rtlpy.memory",
      logging.ERROR,
      f"Field ({fld.name}) reset value (255) does not fit in field (size: 2).")
   ]

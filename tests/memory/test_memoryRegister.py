@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-"""Module to test the rtlpy.design.Register class
+"""Module to test the rtlpy.memory.Register class
 """
 
-from rtlpy.design import Register
+from rtlpy.memory import Register
 
 
 def test_defaultRegister():

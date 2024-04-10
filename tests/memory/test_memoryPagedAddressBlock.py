@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-"""Module to test the rtlpy.design.PagedAddressBlock class
+"""Module to test the rtlpy.memory.PagedAddressBlock class
 """
 
-from rtlpy.design import PagedAddressBlock
+from rtlpy.memory import PagedAddressBlock
 
 
 def test_defaultPagedAddressBlock():

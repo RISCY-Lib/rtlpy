@@ -17,50 +17,109 @@
 ##########################################################################
 
 from __future__ import annotations
-
-from typing import Optional, TypeVar, Type
+from typing import Optional, TypeVar, Type, Any
 
 from abc import ABC, abstractmethod
 
 import logging
 
+import sys
+
 import dataclasses
 from dataclasses import dataclass
 
-from rtlpy.design import AccessType
-
+from rtlpy.types import AccessType
+from rtlpy.exceptions import MissingDefinitionException
 import rtlpy.utils as utils
 
 
+##########################################################################
+# Logging
+##########################################################################
 _log = logging.getLogger(__name__)
 _log.addHandler(logging.NullHandler())
 
 
 ##########################################################################
-# Exception Definitions
+# Typing
 ##########################################################################
-class MissingDefinitionException (Exception):
-  """The Exception raised when converting using a dictionary that is missing a required field"""
-  pass
+_MemElementT = TypeVar("_MemElementT", bound="_MemElement")
 
 
 ##########################################################################
-# TypeVar Definitions
+# Version Dependant Variables
 ##########################################################################
-AddrBlockT = TypeVar('AddrBlockT', bound='_AddressBlockBase')
-
+_dc_kwargs: dict[str, Any] = {}
+if sys.version_info >= (3, 10):
+  _dc_kwargs["kw_only"] = True
 
 ##########################################################################
 # Component Definitions
 ##########################################################################
-@dataclass
-class Field:
+@dataclass(**_dc_kwargs)
+class _MemElement(ABC):
+  """A base class which represents shared functionality between all memory elements"""
+
+  name: str = ""
+  """The name of the memory element"""
+  meta: dict[str, Any] = dataclasses.field(default_factory=dict)
+  """A dictionary of supplementary metadata for the memory element"""
+
+  def valid(self) -> bool:
+    """Checks the memory element is validly defined
+
+    Returns:
+        bool: Returns true if the memory element is valid. False otherwise
+    """
+    ret_val = True
+
+    if not utils.valid_name(self.name):
+      _log.error(f"{type(self).__name__} ({self.name}) has an invalid name.")
+      ret_val = False
+
+    return ret_val
+
+  @classmethod
+  def from_dict(cls: Type[_MemElementT], d: dict[str, Any]) -> _MemElementT:
+    """Create the Memory Element from a dictionary definition
+
+    Args:
+        d (dict[str, Any]): The dictionary definition of the Memory Element
+
+    Returns:
+        Self: The generated memory element
+    """
+    mem = cls()
+
+    flds = dataclasses.fields(mem)
+    fld_names = [f.name for f in flds]
+
+    for key, val in d.items():
+      if key == "meta":
+        raise KeyError("meta is a reserved key for Memory Elements input dictionaries.")
+
+      if key not in fld_names:
+        mem.meta[key] = val
+      else:
+        fld = next(f for f in flds if f.name == key)
+        if fld.type == "int":
+          setattr(mem, key, int(val))
+        elif fld.type == "AccessType":
+          setattr(mem, key, AccessType.from_string(val))
+        else:
+          setattr(mem, key, val)
+
+    return mem
+
+
+@dataclass(**_dc_kwargs)
+class Field(_MemElement):
   """Class which represents a Field within a Register for a MemoryMap"""
 
-  name: str
-  """Field name"""
   size: int = 1
   """Size of the field in bits"""
+  offset: int = 0
+  """The offset of the field in the register"""
   access: AccessType = AccessType.READ_ONLY
   """Access Policy of the Field"""
   reset: int = 0
@@ -78,11 +137,8 @@ class Field:
     Returns:
         bool: Returns true if the Field is valid. False otherwise
     """
-    ret_val = True
+    ret_val = super().valid()
 
-    if not utils.valid_name(self.name):
-      _log.error(f"Field ({self.name}) has an invalid name.")
-      ret_val = False
     if self.reset.bit_length() > self.size:
       _log.error(f"Field ({self.name}) reset value ({self.reset})" +
                  f" does not fit in field (size: {self.size}).")
@@ -93,52 +149,11 @@ class Field:
 
     return ret_val
 
-  @staticmethod
-  def from_dict(definition: dict) -> Field:
-    """Converts the dictionary definition into a Field object.
-    Requires the following keys: [name]
-    Accepts the optional keys: [size, lsb_pos, access, reset, volatile, randomizable]
 
-    Args:
-        definition (dict): The definition of the field in dictionary form
-
-    Raises:
-        MissingDefinitionException: Raised when a required key is missing from the definition
-
-    Returns:
-        Field: The field derived from the definition
-    """
-    required_keys = ['name']
-
-    for req_key in required_keys:
-      if req_key not in definition:
-        _log.error(f"Missing {req_key} key from dict during Field conversion")
-        raise MissingDefinitionException(f"Missing {req_key} key from dict during Field conversion")
-
-    fld = Field(definition['name'])
-
-    if 'size' in definition:
-      fld.size = definition['size']
-    if 'access' in definition:
-      fld.access = AccessType.from_string(definition['access'])
-    if 'reset' in definition:
-      fld.reset = definition['reset']
-    if 'volatile' in definition:
-      fld.volatile = definition['volatile']
-    if 'randomizable' in definition:
-      fld.randomizable = definition['randomizable']
-    if 'reserved' in definition:
-      fld.reserved = definition['reserved']
-
-    return fld
-
-
-@dataclass
-class Register:
+@dataclass(**_dc_kwargs)
+class Register(_MemElement):
   """The class which represents a Register in a MemoryMap"""
 
-  name: str
-  """The name of the register"""
   coverage: str = "UVM_NO_COVERAGE"
   """The UVM Coverage type to apply in a RAL"""
   dimension: int = 1
@@ -207,47 +222,6 @@ class Register:
       ret_val = False
 
     return ret_val
-
-  @staticmethod
-  def from_dict(definition: dict) -> Register:
-    """Converts the dictionary definition into a Register object.
-    Requires the following keys: [name]
-    Accepts the optional keys: [addr, coverage, fields]
-
-    Args:
-        definition (dict): The definition of the Register in dictionary form
-
-    Raises:
-        MissingDefinitionException: Raised when a required key is missing from the definition
-
-    Returns:
-        Register: The register derived from the definition
-    """
-    required_keys = ['name']
-
-    for req_key in required_keys:
-      if req_key not in definition:
-        err = f"Missing {req_key} key from dict during Register conversion"
-        _log.error(err)
-        raise MissingDefinitionException(err)
-
-    reg = Register(definition['name'])
-
-    if 'dimension' in definition:
-      reg.dimension = definition['dimension']
-
-    if 'coverage' in definition:
-      reg.coverage = definition['coverage']
-
-    if 'fields' in definition:
-      for field in definition['fields']:
-        lsb_pos = None if "lsb_pos" not in field else field['lsb_pos']
-
-        reg.add_field(Field.from_dict(field), lsb_pos)
-
-    reg.valid()
-
-    return reg
 
 
 @dataclass
@@ -401,7 +375,7 @@ class _AddressBlockBase(ABC):
     pass
 
   @classmethod
-  def from_dict(cls: Type[AddrBlockT], definition: dict) -> AddrBlockT:
+  def from_dict(cls, definition: dict) -> None:
     """Converts the dictionary definition into an AddressBlock object.
     Requires the following keys: [name, addr_size, data_size]
     Accepts the optional keys:

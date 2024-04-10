@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISCY-Lib Contributors                                    #
+# Copyright (C) 2024, RISCY-Lib Contributors                                    #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -16,5 +16,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from rtlpy.design.types import *  # noqa: F401, F403
-from rtlpy.design.memory import *  # noqa: F401, F403
+from __future__ import annotations
+
+
+##########################################################################
+# Exception Definitions
+##########################################################################
+class MissingDefinitionException (Exception):
+  """The Exception raised when converting using a dictionary that is missing a required field"""
+  pass
