@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import dataclasses
 from abc import ABC, abstractmethod
 
-from rtlpy.memory.remapping import RemapState
+from rtlpy.memory.remapping import RemapState, RegisterValueRemapCondition
 from rtlpy._version_cfg import _dc_kwargs
 import rtlpy.utils as utils
 
@@ -67,11 +67,11 @@ class MemoryMap:
     ret_val = True
 
     if not utils.valid_name(self.name):
-      _log.error(f"Invalid MemoryMap Name {self.name}")
+      _log.error(f"Invalid MemoryMap Name '{self.name}'")
       ret_val = False
 
-    if self.address_unit_bits < 0:
-      _log.error(f"Invalid MemoryMap AddressUnitBits {self.address_unit_bits}")
+    if self.address_unit_bits <= 0:
+      _log.error(f"Invalid MemoryMap ({self.name}) AddressUnitBits {self.address_unit_bits}")
       ret_val = False
 
     if recurse:
@@ -84,6 +84,37 @@ class MemoryMap:
           ret_val = False
 
     return ret_val
+
+  def to_ral(self, predictor_type: str = "uvm_reg_predictor#(uvm_sequence_item)") -> str:
+    """Convert the provided MemoryMap and all sub-components to UVM registers and blocks.
+
+    Args:
+        predictor_type (str): The UVM predictor to use when creating a paged address block
+
+    Returns:
+        str: The string version of the generated RAL
+    """
+    ral_str = ""
+
+    if self.is_present:
+      for element in self.mmap:
+        if isinstance(element, AddressBlock):
+          ral_str += element.to_ral() + "\n\n"
+        else:
+          raise TypeError(
+            f"MemoryMap.to_ral cannot handle a memory element of type: {type(element)}"
+          )
+
+      if self.remap is not None:
+        ral_str += self.remap.to_ral() + "\n\n"
+
+      ral_str += utils._render_uvm(
+        "uvm_reg_block_top.jinja",
+        block=self,
+        predictor_type=predictor_type
+      )
+
+    return ral_str
 
 
 @dataclass(**_dc_kwargs)
@@ -112,11 +143,11 @@ class MemSpace(ABC):
     class_name = type(self).__name__
 
     if not utils.valid_name(self.name):
-      _log.error(f"Invalid {class_name} Name {self.name}")
+      _log.error(f"Invalid {class_name} Name '{self.name}'")
       ret_val = False
 
     if self.base_address < 0:
-      _log.error(f"Invalid {class_name} Base Address {self.base_address}")
+      _log.error(f"Invalid {class_name} ({self.name}) Base Address {self.base_address}")
       ret_val = False
 
     return ret_val
@@ -124,7 +155,7 @@ class MemSpace(ABC):
 
 @dataclass(**_dc_kwargs)
 class AddressBlock(MemSpace):
-  block_size: int = 0
+  block_size: int = 32
   """The bit width of the address block"""
   registers: list[Register] = dataclasses.field(default_factory=list)
   """The memory element associated with the address block"""
@@ -150,8 +181,12 @@ class AddressBlock(MemSpace):
         if not element.validate():
           ret_val = False
 
+    if self.block_size <= 0:
+      _log.error(f"Invalid AddressBlock ({self.name}) Block Size {self.block_size}")
+      ret_val = False
+
     if self.block_size % address_unit_bits != 0:
-      _log.error(f"AddressBlock {self.name} Size {self.block_size}" +
+      _log.error(f"AddressBlock '{self.name}' Size {self.block_size}" +
                  f" is not a multiple of AddressUnitBits {address_unit_bits}")
       ret_val = False
 
@@ -162,6 +197,27 @@ class AddressBlock(MemSpace):
           ret_val = False
 
     return ret_val
+
+  def to_ral(self) -> str:
+    """Convert the provided AddressBlock and all sub-components to UVM registers and blocks.
+
+    Returns:
+        str: The string version of the generated RAL
+    """
+    ral_str = ""
+
+    if not self.is_present:
+      return ral_str
+
+    for reg in self.registers:
+      ral_str += reg.to_ral() + "\n\n"
+
+    ral_str += utils._render_uvm(
+      "uvm_reg_block.jinja",
+      block=self
+    )
+
+    return ral_str
 
 
 @dataclass(**_dc_kwargs)
@@ -197,7 +253,7 @@ class MemoryRemap:
     ret_val = True
 
     if not utils.valid_name(self.name):
-      _log.error(f"Invalid MemoryRemap Name {self.name}")
+      _log.error(f"Invalid MemoryRemap Name '{self.name}'")
       ret_val = False
 
     if recurse:
@@ -209,3 +265,25 @@ class MemoryRemap:
           ret_val = False
 
     return ret_val
+
+  def to_ral(self) -> str:
+    """Convert the provided MemoryRemap and all sub-components to UVM registers and blocks.
+
+    Returns:
+        str: The string version of the generated RAL
+    """
+    ral_str = ""
+
+    for cond in self.state.conditions:
+      if isinstance(cond, RegisterValueRemapCondition):
+        ral_str += cond.to_ral() + "\n\n"
+
+    for element in self.mmap:
+      if isinstance(element, AddressBlock):
+        ral_str += element.to_ral() + "\n\n"
+      else:
+        raise TypeError(
+          f"MemoryRemap.to_ral cannot handle a memory element of type: {type(element)}"
+        )
+
+    return ral_str

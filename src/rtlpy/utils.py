@@ -21,6 +21,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+import jinja2
+
 
 def valid_name(name: str) -> bool:
   """Checks the name is valid for use in RTL.
@@ -107,3 +109,23 @@ def tabular_format(lines: list[str] | str) -> list[str]:
     ret_val.append(line.strip())
 
   return ret_val
+
+
+def _render_uvm(template_name: str, **kwargs) -> str:
+  """_summary_
+
+  Args:
+      template_name (str): _description_
+
+  Returns:
+      str: _description_
+  """
+  env = jinja2.Environment(
+    loader=jinja2.PackageLoader("rtlpy", "_uvm_templates"),
+    lstrip_blocks=True,
+    trim_blocks=True
+  )
+
+  template = env.get_template(template_name)
+
+  return template.render(**kwargs)

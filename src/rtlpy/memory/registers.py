@@ -106,6 +106,11 @@ class Register:
 
     return ret_val
 
+  def to_ral(self) -> str:
+    """Convert the register to a UVM Register for the RAL
+    """
+    return utils._render_uvm("uvm_reg.jinja", reg=self)
+
   def overlaps(self, other: Register, address_unit: int = 8) -> bool:
     """Check if the register overlaps with another register
 
@@ -162,7 +167,9 @@ class Field:
       ret_val = False
 
     if self.reset.bit_length() > self.width:
-      _log.warning(f"Field ({self.name}) Reset Value {self.reset} does not fit in {self.width} bits")
+      _log.warning(
+        f"Field ({self.name}) Reset Value {self.reset} does not fit in {self.width} bits"
+      )
       ret_val = False
 
     return ret_val

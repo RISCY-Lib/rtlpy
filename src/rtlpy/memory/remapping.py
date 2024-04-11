@@ -62,7 +62,7 @@ class RemapState:
     class_name = type(self).__name__
 
     if not utils.valid_name(self.name):
-      _log.error(f"Invalid {class_name} Name {self.name}")
+      _log.error(f"Invalid {class_name} Name '{self.name}'")
       ret_val = False
 
     if recurse:
@@ -77,7 +77,7 @@ class RemapCondition(ABC):
   def __new__(cls, *args, **kwargs):
     if cls is RemapCondition:
       raise TypeError("RemapCondition cannot be instantiated directly, only children")
-    return super().__new__(cls, *args, **kwargs)
+    return super().__new__(cls)
 
   @abstractmethod
   def validate(self, recurse: bool = True) -> bool:
@@ -114,6 +114,16 @@ class RegisterValueRemapCondition(RemapCondition):
       ret_val = False
 
     return ret_val
+
+  def to_ral(self) -> str:
+    """Convert the register value remap condition to a string for the UVM RAL
+
+    Returns:
+        str: The RAL string
+    """
+    if isinstance(self.register, Register):
+      return self.register.to_ral()
+    return ""
 
 
 @dataclass(**_dc_kwargs)
