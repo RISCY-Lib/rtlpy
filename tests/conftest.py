@@ -19,12 +19,11 @@
 import pytest
 import json
 
+from rtlpy.memory import Field, Register
 
 @pytest.fixture(scope="module")
-def minimum_field_definition():
-    return {
-        "name": "test_name"
-    }
+def simple_field():
+    return Field(name="simple_field")
 
 
 @pytest.fixture(scope="module")
