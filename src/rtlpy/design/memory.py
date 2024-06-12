@@ -1,6 +1,6 @@
 ##########################################################################
 # Python library to help with the automatic creation of RTL              #
-# Copyright (C) 2022, RISCY-Lib Contributors                                    #
+# Copyright (C) 2022, RISCY-Lib Contributors                             #
 #                                                                        #
 # This program is free software: you can redistribute it and/or modify   #
 # it under the terms of the GNU General Public License as published by   #
@@ -272,6 +272,8 @@ class _AddressBlockBase(ABC):
   """A dict of the Registers in the AddressBlock, indexed by offset"""
   sub_blocks: dict[int, AddressBlock] = dataclasses.field(default_factory=dict)
   """A dict of address sub-blocks, indexed by base_address"""
+  address_unit_bits: int = 8
+  """The number of bits per address increment"""
 
   def randomizable(self) -> bool:
     """Determines if the AddressBlock is randomizable. (Any of the registers
@@ -297,6 +299,14 @@ class _AddressBlockBase(ABC):
         int: The number of bytes the data field is
     """
     return int(self.data_size / 8)
+
+  def addr_per_reg(self) -> int:
+    """Determines the number of address bits in a single register
+
+    Returns:
+        int: The number of address bits that increment on a register
+    """
+    return int(self.data_size / self.address_unit_bits)
 
   @abstractmethod
   def size(self) -> int:
@@ -442,7 +452,7 @@ class AddressBlock(_AddressBlockBase):
     high_block_offset = 0 if len(self.sub_blocks) == 0 else max(self.sub_blocks.keys())
     if high_reg_offset > high_block_offset:
       return int(high_reg_offset + (self.registers[high_reg_offset].dimension *
-                                    self.data_size / 8))
+                                    self.data_bytes()))
     else:
       return int(high_block_offset + (self.sub_blocks[high_block_offset].dimension *
                                       self.sub_blocks[high_block_offset].size()))
@@ -489,8 +499,7 @@ class AddressBlock(_AddressBlockBase):
 
       mem_obj = addr_space[offset]
       if isinstance(addr_space[offset], Register):
-
-        last_offset = offset + int(self.data_size / 8)
+        last_offset = offset + self.data_bytes()
       elif isinstance(mem_obj, AddressBlock):
         last_offset = offset + mem_obj.size()
 
@@ -512,7 +521,7 @@ class AddressBlock(_AddressBlockBase):
 
     # First check the registers for overlap
     for reg_addr in self.registers.keys():
-      if len([addr for addr in range(reg_addr, reg_addr + int(self.data_size / 8))
+      if len([addr for addr in range(reg_addr, reg_addr + self.addr_per_reg())
               if addr in range(start_addr, end_addr)]):
         return False
 
@@ -526,10 +535,10 @@ class AddressBlock(_AddressBlockBase):
 
   def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
     if offset is None:
-      offset = self._find_address_space(int(self.data_size / 8))
+      offset = self._find_address_space(self.addr_per_reg())
       self.registers[offset] = reg
       return True
-    elif self._check_address_space(int(self.data_size / 8), offset):
+    elif self._check_address_space(self.addr_per_reg(), offset):
       self.registers[offset] = reg
       return True
 
