@@ -1,6 +1,6 @@
 ####################################################################################################
 # rtlpy is a open-source utility library for RTL developers                                        #
-# Copyright (C) 2022, RISCY-Lib Contributors                                                       #
+# Copyright (C) 2025, RISCY-Lib Contributors                                                       #
 #                                                                                                  #
 # This program is free software: you can redistribute it and/or modify                             #
 # it under the terms of the GNU General Public License as published by                             #
@@ -15,3 +15,33 @@
 # You should have received a copy of the GNU General Public License                                #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.                           #
 ####################################################################################################
+
+from __future__ import annotations
+
+import pyslang
+
+from rtlpy.linting import begin_linting
+
+
+def test_begin_linting():
+    """Test the begin_linting function."""
+    # Example code to lint
+    code = """
+    logic condition;
+
+    if (condition) begin
+        // Code to execute if condition is true
+    end
+    else
+        begin
+        // Code to execute if condition is false
+        end
+    """
+
+    tree = pyslang.SyntaxTree.fromText(code)
+
+    # Perform linting
+    issues = begin_linting(tree)
+
+    # Check for expected issues
+    assert len(issues) == 0, f"Linting issues found: {issues}"

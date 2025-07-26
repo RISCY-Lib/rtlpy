@@ -29,6 +29,7 @@ authors = [{name = "Benjamin Davis", email = "allrisc.dev@gmail.com"}]
 license = {file = "LICENSE"}
 dependencies = [
   "jinja2>3.0.0",
+  "pyslang>=8.1.0",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -44,7 +45,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 keywords = ["rtl", "utilities", "SystemVerilog", "Verilog", "UVM"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "https://github.com/RISC-Lib/rtlpy"
