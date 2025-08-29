@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from jinja2 import Environment, PackageLoader
 
-from rtlpy.design.memory import Register, AddressBlock, PagedAddressBlock, _AddressBlockBase
+from rtlpy.design.memory import AddressBlock, PagedAddressBlock, Register, _AddressBlockBase
 
 
 def addrblock_to_ral(ablock: _AddressBlockBase,

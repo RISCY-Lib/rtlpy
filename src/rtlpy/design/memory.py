@@ -18,19 +18,14 @@
 
 from __future__ import annotations
 
-from typing import Optional, TypeVar, Type
-
-from abc import ABC, abstractmethod
-
-import logging
-
 import dataclasses
+import logging
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
-from rtlpy.design import AccessType
+from typing import TypeVar
 
 import rtlpy.utils as utils
-
+from rtlpy.design import AccessType
 
 _log = logging.getLogger(__name__)
 _log.addHandler(logging.NullHandler())
@@ -158,7 +153,7 @@ class Register:
 
     return False
 
-  def add_field(self, fld: Field, lsb_pos: Optional[int] = None) -> bool:
+  def add_field(self, fld: Field, lsb_pos: int | None = None) -> bool:
     """Adds the field at the given lsb position
 
     Args:
@@ -333,7 +328,7 @@ class _AddressBlockBase(ABC):
     return ret_val
 
   @abstractmethod
-  def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
+  def add_register(self, reg: Register, offset: int | None = None) -> bool:
     """Adds the register at the given offset.
     If the offset is None, then add at first valid position
 
@@ -348,7 +343,7 @@ class _AddressBlockBase(ABC):
     pass
 
   @abstractmethod
-  def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+  def add_subblock(self, blk: AddressBlock, offset: int | None = None) -> bool:
     """Adds the sub-block at the given offset.
     If the offset is None, then add at first valid position
 
@@ -411,7 +406,7 @@ class _AddressBlockBase(ABC):
     pass
 
   @classmethod
-  def from_dict(cls: Type[AddrBlockT], definition: dict) -> AddrBlockT:
+  def from_dict(cls: type[AddrBlockT], definition: dict) -> AddrBlockT:
     """Converts the dictionary definition into an AddressBlock object.
     Requires the following keys: [name, addr_size, data_size]
     Accepts the optional keys:
@@ -533,7 +528,7 @@ class AddressBlock(_AddressBlockBase):
 
     return True
 
-  def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
+  def add_register(self, reg: Register, offset: int | None = None) -> bool:
     if offset is None:
       offset = self._find_address_space(self.addr_per_reg())
       self.registers[offset] = reg
@@ -544,7 +539,7 @@ class AddressBlock(_AddressBlockBase):
 
     return False
 
-  def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+  def add_subblock(self, blk: AddressBlock, offset: int | None = None) -> bool:
     if offset is None:
       offset = self._find_address_space(blk.size())
       self.sub_blocks[offset] = blk
@@ -596,7 +591,7 @@ class PagedAddressBlock(_AddressBlockBase):
 
     return max(high_bytes)
 
-  def add_register(self, reg: Register, offset: Optional[int] = None) -> bool:
+  def add_register(self, reg: Register, offset: int | None = None) -> bool:
     raise NotImplementedError()
 
   def _check_address_space(self, size: int, offset: int) -> bool:
@@ -612,7 +607,7 @@ class PagedAddressBlock(_AddressBlockBase):
         bool: True if the address space is free, False otherwise
     """
     upper_bound = size + offset - 1
-    for reg_offset, reg in self.registers.items():
+    for reg_offset, _ in self.registers.items():
       if (upper_bound >= reg_offset + self.data_bytes() - 1) and \
          (offset <= reg_offset + self.data_bytes() - 1):
         return False
@@ -621,7 +616,7 @@ class PagedAddressBlock(_AddressBlockBase):
 
     return True
 
-  def add_subblock(self, blk: AddressBlock, offset: Optional[int] = None) -> bool:
+  def add_subblock(self, blk: AddressBlock, offset: int | None = None) -> bool:
     if not self._check_address_space(blk.size(), blk.base_address):
       _log.warning(f"Can't add sub-block ({blk.name}) to paged block ({self.name})." +
                    f" {blk.name} overlaps with existing registers.")
@@ -655,7 +650,7 @@ class PagedAddressBlock(_AddressBlockBase):
         _log.error(err)
         raise MissingDefinitionException(err)
 
-    blk = super(PagedAddressBlock, cls).from_dict(definition)
+    blk = super().from_dict(definition)
 
     if "offset" not in definition['page_reg']:
       err = f"Missing required offset of page reg during {type(cls)} conversion"

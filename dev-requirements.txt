@@ -1,8 +1,0 @@
-flake8
-tox
-pytest
-coverage
-mypy
-importlib-metadata
-sphinx
-sphinx-rtd-theme

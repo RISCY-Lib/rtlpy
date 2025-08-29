@@ -1,4 +1,4 @@
-#####################################################################################
+####################################################################################################
 # A Library of Python Utilities for RTL Design
 # Copyright (C) 2023  RISC-Lib Contributors
 #
@@ -14,22 +14,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#####################################################################################
+####################################################################################################
 
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.8.8,<0.9.0"]
+build-backend = "uv_build"
 
 [project]
 name = "rtlpy"
-dynamic = ["version"]
+version = "2.0.0a1"
 description = "A Library of Python Utilities for RTL Design"
 readme = "README.md"
 authors = [{name = "Benjamin Davis", email = "allrisc.dev@gmail.com"}]
 license = {file = "LICENSE"}
-dependencies = [
-  "jinja2>3.0.0",
-]
+requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
@@ -44,12 +42,116 @@ classifiers = [
     "Topic :: Utilities",
 ]
 keywords = ["rtl", "utilities", "SystemVerilog", "Verilog", "UVM"]
-requires-python = ">=3.8"
+
+dependencies = [
+    "jinja2>3.0.0",
+]
+
 
 [project.urls]
 Homepage = "https://github.com/RISC-Lib/rtlpy"
 Documentation = "https://rtlpy.readthedocs.io/en/latest/index.html"
 
-[project.optional-dependencies]
-dev = ["flake8", "mypy", "tox", "pytest", "sphinx", "sphinx-rtd-theme"]
-docs = ["sphinx", "sphinx-rtd-theme"]
+[dependency-groups]
+dev = [
+    "ruff>=0.12.8",
+    "tox>=4.25.0",
+    "tox-uv>=1.13.1",
+]
+docs=[
+    "sphinx>=5.3.0",
+    "sphinx-rtd-theme>=2.0.0",
+]
+tests=[
+    "pytest>=7.4.4",
+]
+typing=[
+    "mypy>=1.4.1",
+]
+
+[tool.uv]
+default-groups = ["dev", "docs", "tests", "typing"]
+
+[tool.mypy]
+warn_return_any = true
+
+python_version = "3.9"
+
+files = ["src"]
+
+pretty = true
+
+
+[tool.pyright]
+pythonVersion = "3.8"
+include = ["src"]
+typeCheckingMode = "basic"
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+target-version = "py38"
+show-fixes = true
+
+src = ["src"]
+exclude = ["tests/**.py"]  # TODO: Update to include all test files
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = [
+    "B",  # flake8-bugbear
+    "E",  # pycodestyle error
+    "F",  # pyflakes
+    "I",  # isort
+    "UP",  # pyupgrade
+    "W",  # pycodestyle warning
+]
+ignore = [
+    "UP038",  # keep isinstance tuple
+]
+
+[tool.tox]
+env_list = [
+    "py3.13", "py3.12", "py3.11", "py3.10", "py3.9", "py3.8",
+    "style",
+    "typing",
+    # "docs",
+]
+
+[tool.tox.env_run_base]
+description = "pytest on latest dependency versions"
+runner = "uv-venv-lock-runner"
+package = "wheel"
+wheel_build_env = ".pkg"
+constrain_package_deps = true
+use_frozen_constraints = true
+dependency_groups = ["tests"]
+
+commands = [[
+    "pytest", "-v", "--tb=short", "--basetemp={env_tmp_dir}",
+    {replace = "posargs", default = [], extend = true},
+]]
+
+[tool.tox.env.style]
+description = "run linting and style checks on code"
+dependency_groups = ["dev"]
+skip_install = true
+commands = [["ruff", "check"]]
+
+[tool.tox.env.typing]
+description = "run static type checkers"
+dependency_groups = ["typing"]
+commands = [
+    ["mypy"],
+]
+
+[tool.tox.env.docs]
+description = "build docs"
+dependency_groups = ["docs"]
+commands = [["sphinx-build", "-E", "-W", "-b", "dirhtml", "docs/source", "docs/_build/dirhtml"]]

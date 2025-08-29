@@ -16,5 +16,5 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from rtlpy.design.types import *  # noqa: F401, F403
+from rtlpy.design.types import *  # noqa: F401, F403, I001
 from rtlpy.design.memory import *  # noqa: F401, F403
