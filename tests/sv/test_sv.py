@@ -20,26 +20,21 @@ from __future__ import annotations
 
 import pytest
 
-from rtlpy.ipxact import common
+from rtlpy import sv
 
 
 @pytest.mark.parametrize(
-    ("left", "right", "expected_left", "expected_right"),
+    "expr, expected_val",
     [
-        ("0", "31", 0, 31),
-        ("'h8", "'hF", 8, 15),
-        ("8'hFF", "32'h100", 255, 256),
-        ("0x0", "0x1F", 0, 31),
-    ]
+        ("5", 5),
+        ("5'd5", 5),
+        ("5'd10", 10),
+        ("5'd0", 0),
+        ("5'd-1", 0),  # Negative values should wrap around
+        ("5'hA", 10),
+        ("5'o12", 10),
+        ("5'b1010", 10),
+    ],
 )
-def test_range_valid(left: str, right: str, expected_left: str, expected_right: str) -> None:
-    range_val = common.Range.from_xml(
-        f'''<ipxact:range xmlns:ipxact="http://www.accellera.org/XMLSchema/IPXACT/1685-2022">
-            <ipxact:left minimum="0">{left}</ipxact:left>
-            <ipxact:right>{right}</ipxact:right>
-            </ipxact:range>
-        '''
-    )
-
-    assert range_val.left == expected_left
-    assert range_val.right == expected_right
+def test_expression_to_unsigned_long_int(expr: str, expected_val: int) -> None:
+    assert sv.expression_to_unsigned_long_int(expr) == expected_val

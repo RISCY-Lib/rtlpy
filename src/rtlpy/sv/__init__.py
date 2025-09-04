@@ -15,12 +15,14 @@
 # You should have received a copy of the GNU General Public License                                #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.                           #
 ####################################################################################################
-"""A collection of data types and data-type converters for RTL design."""
+"""A collection of SystemVerilog related functions and classes. Relies on `pyslang` for parsing."""
 
 from __future__ import annotations
-from typing import Any
 
 import re
+from typing import Any
+
+import pyslang
 
 
 def convert_to_unsigned_long_int(value: Any) -> int:
@@ -43,3 +45,15 @@ def convert_to_unsigned_long_int(value: Any) -> int:
         return int(match.group(1), 16)
     else:
         return int(value, 10)
+
+def expression_to_unsigned_long_int(value: str) -> int:
+    """Convert a SystemVerilog expression to an unsigned long integer.
+
+    Args:
+        value (str): The SystemVerilog expression to convert.
+
+    Returns:
+        int: The converted unsigned long integer.
+    """
+    session = pyslang.ScriptSession()
+    return int(session.eval(value))

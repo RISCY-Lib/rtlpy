@@ -27,7 +27,7 @@ from pydantic import BeforeValidator, WrapValidator
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from typing_extensions import Annotated
 
-from rtlpy import datatypes
+from rtlpy import sv
 
 NSMAP = {
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
@@ -128,11 +128,15 @@ class Index:
 # C.7 complexBaseExpression
 ####################################################################################################
 
-complexTiedValueExpress = Annotated[
+complexTiedValueExpression = Annotated[
     Union[int, Literal['open', 'default']],
-    BeforeValidator(datatypes.convert_to_unsigned_long_int)
+    BeforeValidator(sv.convert_to_unsigned_long_int)
 ]
-unsignedLongintExpression = Annotated[int, BeforeValidator(datatypes.convert_to_unsigned_long_int)]
+# qualifiedExpression = Union[
+#     unsignedBitExpression, unsignedBitVectorExpression, realExpression, realVectorExpression
+# ]
+# realExpression = Annotated[float, BeforeValidator(sv.convert_to_real)]
+unsignedLongintExpression = Annotated[int, BeforeValidator(sv.convert_to_unsigned_long_int)]
 
 
 ####################################################################################################
