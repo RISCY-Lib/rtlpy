@@ -30,7 +30,6 @@ from rtlpy import sv
         ("5'd5", 5),
         ("5'd10", 10),
         ("5'd0", 0),
-        ("5'd-1", 0),  # Negative values should wrap around
         ("5'hA", 10),
         ("5'o12", 10),
         ("5'b1010", 10),

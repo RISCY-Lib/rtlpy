@@ -55,7 +55,6 @@ Documentation = "https://rtlpy.readthedocs.io/en/latest/index.html"
 
 [dependency-groups]
 dev = [
-    "pyslang-stubs>=9.0.0.20250902",
     "ruff>=0.12.8",
     "tox>=4.25.0",
     "tox-uv>=1.13.1",
@@ -70,6 +69,7 @@ tests=[
 ]
 typing=[
     "mypy>=1.4.1",
+    "pyslang-stubs>=9.0.0.20250902",
 ]
 
 [tool.uv]

@@ -15,48 +15,4 @@
 # You should have received a copy of the GNU General Public License                                #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.                           #
 ####################################################################################################
-"""A collection of SystemVerilog related functions and classes. Relies on `pyslang` for parsing."""
 
-from __future__ import annotations
-
-import re
-from typing import Any
-
-import pyslang
-
-
-def convert_to_unsigned_long_int(value: Any) -> int:
-    if isinstance(value, int):
-        if value < 0:
-            raise ValueError("Value must be non-negative")
-        return value
-    if not isinstance(value, str):
-        raise ValueError("Value must be a string or integer")
-
-    if match := re.match(r"^\d*'[uU]?[hH]([0-9a-fA-F_]+)$", value):
-        return int(match.group(1), 16)
-    elif match := re.match(r"^\d*'[uU]?[dD]([0-9]+)$", value):
-        return int(match.group(1), 10)
-    elif match := re.match(r"^\d*'[uU]?[oO]([0-7]+)$", value):
-        return int(match.group(1), 8)
-    elif match := re.match(r"^\d*'[uU]?[bB]([01]+)$", value):
-        return int(match.group(1), 2)
-    elif match := re.match(r"^0?x([0-9a-fA-F_]+)$", value):
-        return int(match.group(1), 16)
-    else:
-        return int(value, 10)
-
-def expression_to_unsigned_long_int(value: str) -> int:
-    """Convert a SystemVerilog expression to an unsigned long integer.
-
-    Args:
-        value (str): The SystemVerilog expression to convert.
-
-    Returns:
-        int: The converted unsigned long integer.
-    """
-    session = pyslang.ScriptSession()
-    result = session.eval(value)
-    if not isinstance(result.value, pyslang.SVInt):
-        raise ValueError("Expression did not evaluate to an SVInt")
-    return int(result.value)

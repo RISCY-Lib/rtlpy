@@ -15,48 +15,38 @@
 # You should have received a copy of the GNU General Public License                                #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.                           #
 ####################################################################################################
-"""A collection of SystemVerilog related functions and classes. Relies on `pyslang` for parsing."""
 
 from __future__ import annotations
 
-import re
-from typing import Any
+import argparse
+import pathlib
 
-import pyslang
+from rtlpy.tools import base
 
 
-def convert_to_unsigned_long_int(value: Any) -> int:
-    if isinstance(value, int):
-        if value < 0:
-            raise ValueError("Value must be non-negative")
-        return value
-    if not isinstance(value, str):
-        raise ValueError("Value must be a string or integer")
+def test_from_file_action(tmp_path: pathlib.Path) -> None:
+    """Test the FromFileAction correctly expands arguments from a file."""
+    args_file = tmp_path / "args.txt"
+    args_file.write_text("--option1 value1\n--option2 value2\n")
 
-    if match := re.match(r"^\d*'[uU]?[hH]([0-9a-fA-F_]+)$", value):
-        return int(match.group(1), 16)
-    elif match := re.match(r"^\d*'[uU]?[dD]([0-9]+)$", value):
-        return int(match.group(1), 10)
-    elif match := re.match(r"^\d*'[uU]?[oO]([0-7]+)$", value):
-        return int(match.group(1), 8)
-    elif match := re.match(r"^\d*'[uU]?[bB]([01]+)$", value):
-        return int(match.group(1), 2)
-    elif match := re.match(r"^0?x([0-9a-fA-F_]+)$", value):
-        return int(match.group(1), 16)
-    else:
-        return int(value, 10)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--option1",
+        type=str,
+    )
+    parser.add_argument(
+        "--option2",
+        type=str,
+    )
+    parser.add_argument(
+        "-f",
+        "--from-file",
+        type=argparse.FileType('r'),
+        action=base._FromFileAction,
+        help="Expand the provided from file into the command line arguments.",
+    )
 
-def expression_to_unsigned_long_int(value: str) -> int:
-    """Convert a SystemVerilog expression to an unsigned long integer.
+    parsed_args = parser.parse_args(["-f", str(args_file)])
 
-    Args:
-        value (str): The SystemVerilog expression to convert.
-
-    Returns:
-        int: The converted unsigned long integer.
-    """
-    session = pyslang.ScriptSession()
-    result = session.eval(value)
-    if not isinstance(result.value, pyslang.SVInt):
-        raise ValueError("Expression did not evaluate to an SVInt")
-    return int(result.value)
+    assert parsed_args.option1 == "value1"
+    assert parsed_args.option2 == "value2"

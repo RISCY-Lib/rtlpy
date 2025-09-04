@@ -681,7 +681,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "pyslang-stubs" },
     { name = "ruff" },
     { name = "tox" },
     { name = "tox-uv" },
@@ -698,6 +697,7 @@ tests = [
 ]
 typing = [
     { name = "mypy" },
+    { name = "pyslang-stubs" },
 ]
 
 [package.metadata]
@@ -708,7 +708,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pyslang-stubs", specifier = ">=9.0.0.20250902" },
     { name = "ruff", specifier = ">=0.12.8" },
     { name = "tox", specifier = ">=4.25.0" },
     { name = "tox-uv", specifier = ">=1.13.1" },
@@ -719,7 +718,10 @@ docs = [
     { name = "sphinx-rtd-theme", specifier = ">=2.0.0" },
 ]
 tests = [{ name = "pytest", specifier = ">=7.4.4" }]
-typing = [{ name = "mypy", specifier = ">=1.4.1" }]
+typing = [
+    { name = "mypy", specifier = ">=1.4.1" },
+    { name = "pyslang-stubs", specifier = ">=9.0.0.20250902" },
+]
 
 [[package]]
 name = "ruff"

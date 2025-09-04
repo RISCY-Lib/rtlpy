@@ -21,9 +21,9 @@ Defined in the IEEE_1685-2022 standard under Annex C.
 
 from __future__ import annotations
 
-from typing import Literal, Union, Dict
+from typing import Literal, Union
 
-from pydantic import BeforeValidator, WrapValidator
+from pydantic import BeforeValidator
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
 from typing_extensions import Annotated
 
@@ -151,5 +151,3 @@ class Range(BaseXmlModel, ns="ipxact", tag="range", nsmap=NSMAP):
     """Specifies the left range for the bit slice from a parameter or port"""
     right: unsignedLongintExpression = element("right", ns="ipxact", nsmap=NSMAP)
     """Specifies the right range for the bit slice from a parameter or port"""
-    left_attribs: Dict[str, str] = element(tag="left", ns="ipxact", nsmap=NSMAP, default_factory=dict)
-    right_attribs: Dict[str, str] = element(tag="right", ns="ipxact", nsmap=NSMAP, default_factory=dict)
