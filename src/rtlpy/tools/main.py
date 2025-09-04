@@ -15,3 +15,13 @@
 # You should have received a copy of the GNU General Public License                                #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.                           #
 ####################################################################################################
+
+from __future__ import annotations
+
+
+def main() -> None:
+    raise NotImplementedError("This module is not yet implemented for direct execution.")
+
+
+if __name__ == "__main__":
+    main()

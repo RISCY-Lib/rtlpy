@@ -23,17 +23,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import IO, ClassVar
 
-import pydantic
+from rtlpy.tools import cfg
 
 __all__ = [
-    "ConfigurationModel",
     "Subcommand",
 ]
-
-
-class ConfigurationModel(pydantic.BaseModel):
-    """A base class for defining configuration models in the rtlpy toolset."""
-
 
 @dataclass
 class Subcommand(ABC):
@@ -51,7 +45,7 @@ class Subcommand(ABC):
     """A long description of the subcommand, used in help messages.
     If none the class __doc__ wil be used instead.
     """
-    cfg_model: ClassVar[type[ConfigurationModel]] = ConfigurationModel
+    cfg_model: ClassVar[type[cfg.ConfigurationModel]] = cfg.ConfigurationModel
     """A Pydantic model for configuration options specific to this subcommand."""
 
     def _init_subparser(self, subgroup: argparse._SubParsersAction) -> None:

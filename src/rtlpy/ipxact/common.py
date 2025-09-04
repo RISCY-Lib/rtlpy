@@ -21,11 +21,10 @@ Defined in the IEEE_1685-2022 standard under Annex C.
 
 from __future__ import annotations
 
-from typing import Literal, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import BeforeValidator
 from pydantic_xml import BaseXmlModel, attr, element, wrapped
-from typing_extensions import Annotated
 
 from rtlpy import sv
 

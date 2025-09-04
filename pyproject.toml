@@ -80,7 +80,7 @@ warn_return_any = true
 
 python_version = "3.9"
 
-files = ["src"]
+files = ["src", "tests"]
 
 pretty = true
 
@@ -94,10 +94,10 @@ typeCheckingMode = "basic"
 line-length = 100
 indent-width = 4
 
-target-version = "py38"
+target-version = "py39"
 show-fixes = true
 
-src = ["src"]
+src = ["src", "tests"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -148,7 +148,7 @@ commands = [["ruff", "check"]]
 
 [tool.tox.env.typing]
 description = "run static type checkers"
-dependency_groups = ["typing"]
+dependency_groups = ["typing", "tests"]
 commands = [
     ["mypy"],
 ]
